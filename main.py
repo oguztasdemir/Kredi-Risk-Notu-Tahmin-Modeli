@@ -34,8 +34,29 @@ def main():
     steps = [
         os.path.join(scripts_dir, "1_veri_temizleme_ve_cevirme.py"),
         os.path.join(scripts_dir, "2_id_kontrolu.py"),
-        os.path.join(scripts_dir, "3_veri_birlestirme.py")
+        os.path.join(scripts_dir, "3_veri_birlestirme.py"),
+        os.path.join(scripts_dir, "4_doluluk_analizi.py"),
+        os.path.join(scripts_dir, "5_kritik_sutun_temizligi.py"),
+        os.path.join(scripts_dir, "6_veri_tutarlilik_denetimi.py"),
+        os.path.join(scripts_dir, "7_finansal_sutun_temizligi.py"),
+        os.path.join(scripts_dir, "8_finansal_tutarlilik_denetimi.py")
     ]
+    
+    # İnteraktif Kontrol: Eğer çıktılar varsa kullanıcıya sor
+    check_file = os.path.join(base_path, "1_Veri_Manipülasyonu", "Ciktilar", "3_Veri_Birlestirme", "birlesik_veri_türkçe.xlsx")
+    if os.path.exists(check_file):
+        print("\n" + "="*50)
+        print("BİLGİ: Proje daha önce çalıştırılmış ve birleşik veriler mevcut.")
+        print("1 - Tüm adımları baştan sona yeniden çalıştır (Full Reset)")
+        print("2 - Sadece analizleri ve raporları tazele (Quick Audit)")
+        print("="*50)
+        secim = input("Seçiminizi yapın (1/2): ")
+        if secim == "2":
+            print("\n>>> Hızlı mod seçildi. Sadece raporlama ve temizlik adımları (4, 5, 6, 7) çalıştırılacak...")
+            os.environ['QUICK_MODE'] = '1'
+            steps = [s for s in steps if any(x in s for x in ["4_", "5_", "6_", "7_"])]
+        else:
+            os.environ['QUICK_MODE'] = '0'
     
     total_start = time.time()
     

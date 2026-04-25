@@ -76,6 +76,19 @@ credit_mix_translation = {
     "Good": "İyi", "Standard": "Standart", "Bad": "Kötü", "_": "Belirtilmemiş"
 }
 
+loan_type_translation = {
+    "Credit-Builder Loan": "Kredi Geliştirme Kredisi",
+    "Home Equity Loan": "Ev Özsermaye Kredisi",
+    "Payday Loan": "Hızlı Kredi",
+    "Student Loan": "Öğrenci Kredisi",
+    "Debt Consolidation Loan": "Borç Yapılandırma Kredisi",
+    "Personal Loan": "Bireysel Kredi",
+    "Auto Loan": "Araç Kredisi",
+    "Mortgage Loan": "Konut Kredisi",
+    "Not Specified": "Belirtilmemiş",
+    " and ": " ve "
+}
+
 payment_behaviour_translation = {
     "High_spent_Small_value_payments": "Yüksek Harcama Düşük Ödeme",
     "Low_spent_Large_value_payments": "Düşük Harcama Yüksek Ödeme",
@@ -113,6 +126,12 @@ def clean_and_translate(file_name):
     if "Payment_of_Min_Amount" in df.columns:
         df["Payment_of_Min_Amount"] = df["Payment_of_Min_Amount"].map(yes_no_translation).fillna(df["Payment_of_Min_Amount"])
         
+    # Kredi Türü (Type_of_Loan) Çevirisi
+    if "Type_of_Loan" in df.columns:
+        df["Type_of_Loan"] = df["Type_of_Loan"].astype(str)
+        for eng, tr in loan_type_translation.items():
+            df["Type_of_Loan"] = df["Type_of_Loan"].str.replace(eng, tr, regex=False)
+
     # Kredi Geçmişi Yaşı Çevirisi (Örn: 22 Years and 4 Months -> 22 Yıl ve 4 Ay)
     if "Credit_History_Age" in df.columns:
         df["Credit_History_Age"] = df["Credit_History_Age"].astype(str).str.replace("Years", "Yıl").str.replace("and", "ve").str.replace("Months", "Ay").str.replace("Month", "Ay")
