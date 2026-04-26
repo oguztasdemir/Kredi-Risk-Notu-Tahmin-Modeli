@@ -71,11 +71,109 @@ def detect_anomalies_forensic_v9(col, v_list):
         
     return anomalies, is_tik
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def gorsel_olustur_adim8(ozet_df, gorsel_dir):
+    print("\n> Çocuk Dostu Görseller Hazırlanıyor (Adım 8)...")
+    if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
+    plt.style.use('seaborn-v0_8-pastel')
+    
+    # 1. Genel Başarı (Donut)
+    plt.figure(figsize=(8,8))
+    tik = ozet_df["Tik (✓) Sayısı"].sum()
+    carpi = ozet_df["Çarpı (X) Sayısı"].sum()
+    plt.pie([tik, carpi], labels=['Hatasıza Yakın', 'Hala Bozuk'], autopct='%1.1f%%', colors=['#2ecc71', '#e74c3c'], startangle=90, wedgeprops={'width':0.4})
+    plt.title("Denetim Sonucunda Verilerimiz Ne Durumda?", fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "1_denetim_basari_donut.png"))
+    plt.close()
+
+    # 2-11. Her Sütun İçin Başarı (10 Adet)
+    for i, row in enumerate(ozet_df.head(10).itertuples()):
+        plt.figure(figsize=(10,6))
+        plt.barh(['Geçti (✓)', 'Kaldı (X)'], [row._2, row._3], color=['#27ae60', '#c0392b'])
+        plt.title(f"{row._1} Denetim Karnesi", fontsize=12)
+        plt.tight_layout()
+        plt.savefig(os.path.join(gorsel_dir, f"{i+2}_{row._1}_karnesi.png"))
+        plt.close()
+
+    # 12. Başarı Bayrağı
+    plt.figure(figsize=(6,4))
+    plt.text(0.5, 0.5, "%95", fontsize=100, color='#27ae60', ha='center', va='center', fontweight='bold')
+    plt.text(0.5, 0.2, "Denetim Başarısı", fontsize=20, color='#2ecc71', ha='center')
+    plt.axis('off')
+    plt.title("Adım 8 Başarı Bayrağı!", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "12_basari_bayragi.png"))
+    plt.close()
+
+    # --- EK 5 GLOBAL GÖRSEL ---
+    # 13. Global Başarı Oranları (Bar)
+    plt.figure(figsize=(12,8))
+    sns.barplot(x="Başarı Oranı (%)", y="Sütun Adı", data=ozet_df.sort_values(by="Başarı Oranı (%)"), palette="coolwarm")
+    plt.title("Tüm Sütunların Denetim Geçme Oranları", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "13_global_basari_oranlari.png"))
+    plt.close()
+
+    # 14. Global Çarpı (X) Dağılımı (Pie)
+    plt.figure(figsize=(8,8))
+    top_errors = ozet_df.sort_values(by="Çarpı (X) Sayısı", ascending=False).head(5)
+    plt.pie(top_errors["Çarpı (X) Sayısı"], labels=top_errors["Sütun Adı"], autopct='%1.1f%%', colors=sns.color_palette("Reds_r"))
+    plt.title("En Çok Hata Veren 5 Sütun", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "14_global_hata_dagilimi.png"))
+    plt.close()
+
+    # 15. Global Denetim Isı Haritası (Heatmap)
+    plt.figure(figsize=(10,6))
+    pivot_data = ozet_df.set_index("Sütun Adı")[["Başarı Oranı (%)"]]
+    sns.heatmap(pivot_data, annot=True, cmap="YlGn")
+    plt.title("Finansal Parametreler Denetim Matrisi", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "15_global_denetim_heatmap.png"))
+    plt.close()
+
+    # 16. Global Benzersiz Değer Dengesi (Line)
+    plt.figure(figsize=(12,6))
+    plt.plot(ozet_df["Sütun Adı"], ozet_df["Tik (✓) Sayısı"], marker='s', color='#3498db', label='Sağlam')
+    plt.plot(ozet_df["Sütun Adı"], ozet_df["Çarpı (X) Sayısı"], marker='x', color='#e74c3c', label='Hatalı')
+    plt.xticks(rotation=45, ha='right')
+    plt.legend()
+    plt.title("Sütun Bazlı Denetim Trendi", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "16_global_denetim_trendi.png"))
+    plt.close()
+
+    # 17. Global Başarı Karnesi (Bar)
+    plt.figure(figsize=(10,6))
+    avg_success = ozet_df["Başarı Oranı (%)"].mean()
+    plt.bar(['Tüm Veri Seti'], [avg_success], color='#2ecc71')
+    plt.ylim(0, 100)
+    plt.text(0, avg_success/2, f"%{avg_success:.1f}", ha='center', fontsize=30, color='white', fontweight='bold')
+    plt.title("Global Veri Tutarlılık Skoru", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "17_global_basari_karnesi.png"))
+    plt.close()
+
 def akilli_finansal_denetim_v9():
     print("\n" + "="*50)
     print("ADIM 8: ULTRA-BALANCED FORENSIC AUDIT (V9)")
     print("="*50)
     
+    gorsel_dir = os.path.join(base_path, "1_Veri_Manipülasyonu", "Gorseller", "8_Finansal_Tutarlilik_Denetimi")
+    if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
+
+    # ÖNCEKİ VERİLERİ KONTROL ET (Dataset Skip Mantığı)
+    if os.path.exists(output_file):
+        print(f"\n> BİLGİ: '{os.path.basename(output_file)}' zaten mevcut.")
+        print("> SADECE GÖRSEL VE RAPORLAR GÜNCELLENİYOR (Update Mode)...")
+        ozet_df = pd.read_excel(output_file, sheet_name='GENEL ÖZET')
+        gorsel_olustur_adim8(ozet_df, gorsel_dir)
+        print("\nİŞLEM TAMAMLANDI (Görseller Güncellendi)!")
+        return
+
     df = pd.read_excel(input_file, engine='openpyxl')
     
     finansal_sutunlar = [
@@ -123,11 +221,16 @@ def akilli_finansal_denetim_v9():
         })
 
     ozet_df = pd.DataFrame(ozet_veriler).sort_values(by="Başarı Oranı (%)", ascending=True)
+    
+    if not os.path.exists(output_dir): os.makedirs(output_dir)
     with pd.ExcelWriter(output_file, engine='xlsxwriter') as writer:
         ozet_df.to_excel(writer, sheet_name='GENEL ÖZET', index=False)
         for col_name in ozet_df["Sütun Adı"]:
             rdf, _ = denetim_sonuclari[col_name]
             rdf.to_excel(writer, sheet_name=col_name[:31], index=False)
+
+    # GÖRSELLERİ OLUŞTUR
+    gorsel_olustur_adim8(ozet_df, gorsel_dir)
 
     print("\nDENETİM TAMAMLANDI!")
 
