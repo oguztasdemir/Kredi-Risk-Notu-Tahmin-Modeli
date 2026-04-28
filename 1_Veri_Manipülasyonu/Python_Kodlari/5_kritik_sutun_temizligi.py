@@ -60,16 +60,25 @@ def gorsel_olustur_adim5(df, original_df, gorsel_dir):
     plt.savefig(os.path.join(gorsel_dir, "1_genel_temizlik.png"))
     plt.close()
 
-    # 2-8. Sütun Bazlı Bar Grafikeri (7 Adet)
+    # 2. Kritik Sütun Onarım Dashboard (Kapsamlı Birleştirme)
+    print("> Kritik Onarım Dashboard Hazırlanıyor...")
     kritik = ["İsim", "Yaş", "Kimlik No", "Meslek", "Yıllık Gelir", "Aylık Net Maaş", "Kredi Türü"]
+    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+    axes = axes.flatten()
+    
     for i, col in enumerate(kritik):
-        plt.figure(figsize=(10,6))
         fark = (df[col].astype(str) != original_df[col].astype(str)).sum()
-        plt.bar(['Doğru Veri', 'Onarılan Hata'], [len(df)-fark, fark], color=['#3498db', '#f1c40f'])
-        plt.title(f"{col} Sütunundaki Düzeltmeler", fontsize=12)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, f"{i+2}_{col}_bar.png"))
-        plt.close()
+        axes[i].bar(['Doğru Veri', 'Onarılan Hata'], [len(df)-fark, fark], color=['#3498db', '#f1c40f'])
+        axes[i].set_title(f"{col} Düzeltmeleri", fontsize=10, fontweight='bold')
+        
+    # Boş kalan son kareyi temizle
+    for j in range(len(kritik), len(axes)):
+        fig.delaxes(axes[j])
+        
+    plt.suptitle("KRİTİK SÜTUN ONARIM VE RESTORASYON DASHBOARD", fontsize=16, fontweight='bold', y=1.02)
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "2_kritik_onarım_dashboard.png"), dpi=300)
+    plt.close()
 
     # 9. Yaş Dağılımı (Histogram)
     plt.figure(figsize=(10,6))
@@ -79,15 +88,6 @@ def gorsel_olustur_adim5(df, original_df, gorsel_dir):
     plt.savefig(os.path.join(gorsel_dir, "9_yas_dagilim.png"))
     plt.close()
 
-    # 10. Başarı Skoru (Big Number)
-    plt.figure(figsize=(6,4))
-    plt.text(0.5, 0.5, "%100", fontsize=100, color='#2ecc71', ha='center', va='center', fontweight='bold')
-    plt.text(0.5, 0.2, "Kimlik Doğruluğu", fontsize=20, color='#27ae60', ha='center')
-    plt.axis('off')
-    plt.title("Adım 5 Başarı Bayrağı!", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "10_basari_bayragi.png"))
-    plt.close()
 
     # --- EK 5 GLOBAL GÖRSEL ---
     # 11. Doluluk Matrisi (Heatmap)

@@ -89,24 +89,20 @@ def gorsel_olustur_adim8(ozet_df, gorsel_dir):
     plt.savefig(os.path.join(gorsel_dir, "1_denetim_basari_donut.png"))
     plt.close()
 
-    # 2-11. Her Sütun İçin Başarı (10 Adet)
+    # 2. Finansal Denetim Dashboard (Kapsamlı Birleştirme)
+    print("> Denetim Dashboard Hazırlanıyor...")
+    fig, axes = plt.subplots(2, 5, figsize=(20, 10))
+    axes = axes.flatten()
+    
     for i, row in enumerate(ozet_df.head(10).itertuples()):
-        plt.figure(figsize=(10,6))
-        plt.barh(['Geçti (✓)', 'Kaldı (X)'], [row._2, row._3], color=['#27ae60', '#c0392b'])
-        plt.title(f"{row._1} Denetim Karnesi", fontsize=12)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, f"{i+2}_{row._1}_karnesi.png"))
-        plt.close()
-
-    # 12. Başarı Bayrağı
-    plt.figure(figsize=(6,4))
-    plt.text(0.5, 0.5, "%95", fontsize=100, color='#27ae60', ha='center', va='center', fontweight='bold')
-    plt.text(0.5, 0.2, "Denetim Başarısı", fontsize=20, color='#2ecc71', ha='center')
-    plt.axis('off')
-    plt.title("Adım 8 Başarı Bayrağı!", fontsize=14)
+        axes[i].barh(['Geçti (✓)', 'Kaldı (X)'], [row._2, row._3], color=['#27ae60', '#c0392b'])
+        axes[i].set_title(f"{row._1} Karnesi", fontsize=10, fontweight='bold')
+        
+    plt.suptitle("FİNANSAL TUTARLILIK DENETİM VE GEÇERLİLİK DASHBOARD", fontsize=16, fontweight='bold', y=1.02)
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "12_basari_bayragi.png"))
+    plt.savefig(os.path.join(gorsel_dir, "2_denetim_karneleri_dashboard.png"), dpi=300)
     plt.close()
+
 
     # --- EK 5 GLOBAL GÖRSEL ---
     # 13. Global Başarı Oranları (Bar)

@@ -40,7 +40,7 @@ def gorsel_olustur_akademik(pca, X_pca, n_comp, y):
              np.cumsum(pca.explained_variance_ratio_), marker='o', linestyle='--', color='#16a085')
     plt.axhline(y=0.90, color='r', linestyle=':', label='%90 Varyans Sınırı')
     plt.title("Figure 5: PCA Kümülatif Açıklanan Varyans Oranı", fontsize=14, fontweight='bold')
-    plt.xlabel("Bileşen Sayısı (Components)")
+    plt.xlabel("Bileşen Sayısı (Bileşenler)")
     plt.ylabel("Kümülatif Açıklanan Varyans")
     plt.legend()
     plt.tight_layout()

@@ -1,0 +1,196 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[turkish]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{subcaption}
+\usepackage{fancyhdr}
+\usepackage{mathpazo} 
+
+\geometry{left=3cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Kredi Notu Tahminleme}
+\fancyhead[R]{Teknik Analiz}
+\fancyfoot[C]{\thepage}
+
+\definecolor{techblue}{RGB}{20,40,80}
+\titleformat{\section}{\color{techblue}\normalfont\large\bfseries}{\thesection}{1em}{}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\large \textbf{ISTANBUL MEDENIYET UNIVERSITESI}}\\[0.5cm]
+    {\large Muhendislik ve Doga Bilimleri Fakultesi}\\[0.5cm]
+    {\large Matematik Bolumu}\\[3cm]
+    
+    {\Large \textbf{Kredi Notu Siniflandirmasinda Veri Analizi}}\\[1.5cm]
+    {\large Proje Raporu}\\[3cm]
+    
+    \textbf{Grup Uyeleri:}\\
+    Oguz Tasdemir, Ertugrul Akkus, Yunus Emre Demir,\\
+    Rabia Zeynep Sofu, Nisa Gonultas, Ali Baran Akdogan\\[3cm]
+    
+    \textbf{Danisman:}\\
+    Dr. Ogr. Uyesi Betil Hicdurmaz\\[3cm]
+    
+    \vfill
+    Istanbul, 2026
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{GIRIS}
+Bu calisma, kredi notu tahminleme sureclerindeki veri temizleme ve klasor yapilandirmasini ele almaktadir.
+
+\newpage
+\section{KLASOR YAPILANDIRMASI}
+Proje dosyaları mantıksal bir düzen içerisinde saklanmaktadır.
+
+\begin{itemize}
+    \item \textbf{1\_Veri\_Manipulasyonu:} Ham verilerin temizlendiği bölümdür.
+    \item \textbf{2\_Feature\_Selection:} Önemli değişkenlerin seçildiği bölümdür.
+    \item \textbf{3\_Siniflandirma\_Modelleri:} Modellerin eğitildiği bölümdür.
+\end{itemize}
+
+\newpage
+\section{VERİ DÜZENLEME VE ANALİZ}
+Bu bölüm, projenin en kritik aşaması olan veri temizleme, restorasyon ve hazırlık süreçlerini 12 temel adımda detaylandırmaktadır. Proje, ham verinin bir "adli restorasyon" süzgecinden geçirilerek yüksek kaliteli bir veri kümesine dönüştürülmesini hedeflemektedir.
+
+\subsection{Adım 1: Veri Temizleme ve Tip Çevrimi}
+Sürecin ilk adımında, ham veri setindeki veri tipi uyumsuzlukları giderilmiştir. Özellikle finansal sütunlardaki dolar işaretleri (\$), alt çizgiler (\_) ve metinsel "NaN" ifadeleri temizlenmiş; sütunlar uygun sayısal (float64) ve tarihsel (datetime) formatlara dönüştürülmüştür.
+
+\subsection{Adım 2: Müşteri Kimlik Doğrulaması (ID Kontrolü)}
+Müşterilerin sistemdeki tekilliği, "Müşteri ID" ve "Kimlik No" sütunları üzerinden çapraz kontrole tabi tutulmuştur. Hatalı atanmış veya mükerrer (duplicate) kayıtlar tespit edilerek veri bütünlüğü sağlanmıştır.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/2_Musteri_ID_Kontrolu/1_id_doluluk.png}}
+        \caption{ID Bazlı Veri Doluluğu}
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/2_Musteri_ID_Kontrolu/2_id_venn_satir.png}}
+        \caption{Müşteri Kesişim Analizi}
+    \end{subfigure}
+    \caption{Müşteri kimlik ve veri bütünlüğü analizi.}
+\end{figure}
+
+\subsection{Adım 3: Veri Birleştirme ve Konsolidasyon}
+Müşterilerin 8 aylık finansal hareketleri (Ocak - Ağustos) kronolojik olarak birleştirilmiştir. Bu birleştirme, müşterinin zaman içindeki finansal davranışlarını (ödeme alışkanlıkları, borç değişimi) gözlemlememize olanak tanımaktadır.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/3_Veri_Birlestirme/1_aylik_dagilim.png}}
+        \caption{Aylık Kayıt Dağılımı}
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/3_Veri_Birlestirme/2_kredi_skoru_donut.png}}
+        \caption{Hedef Değişken Payı}
+    \end{subfigure}
+    \caption{Veri seti konsolidasyon özetleri.}
+\end{figure}
+
+\subsection{Adım 4: Doluluk Analizi ve Eksik Veri Tespiti}
+Veri setindeki "NaN" (Eksik Veri) yoğunluğu analiz edilmiştir. Bazı sütunlardaki (örneğin "Kredi Sorgu Sayısı") \%10'u aşan eksiklikler, rastgele atamalar yerine bir sonraki adımlarda yapılacak olan "geçmişe dayalı restorasyon" için işaretlenmiştir.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/4_Doluluk_Analizi/1_kolon_doluluk_lollipop.png}}
+    \caption{Sütun bazlı veri doluluk oranları (Lollipop Analizi).}
+\end{figure}
+
+\subsection{Adım 5: Kritik Sütun Temizliği}
+İsim, Yaş ve Meslek gibi "nominal" ve "ordinal" verilerdeki kirlilikler (örneğin "_______" gibi isimler veya "150" gibi gerçekçi olmayan yaşlar) temizlenmiştir. Meslek grupları standart bir listeye indirgenerek varyans azaltılmıştır.
+
+\subsection{Adım 6: Veri Tutarlılık Denetimi}
+Müşteri bazlı tarihsel tutarlılık denetimi yapılmıştır. Bir müşterinin cinsiyeti, ismi veya sabit doğum tarihi aylara göre değişemez. Bu tür tutarsızlıklar, müşterinin en çok tekrar eden (mode) değeri ile sabitlenerek veri kalitesi artırılmıştır.
+
+\subsection{Adım 7: Finansal Sütun Temizliği ve Normalizasyon}
+Maaş, faiz oranı ve yatırım miktarı gibi finansal sütunlardaki uç değerler ve hatalı formatlar normalize edilmiştir. Sayısal değerler arasındaki ölçek farkları (örneğin maaşın binlerce dolar, faizin ise birim bazlı olması) standartlaştırılmaya hazır hale getirilmiştir.
+
+\subsection{Adım 8: Finansal Mantık ve Tutarlılık Denetimi}
+Finansal mantık kuralları uygulanmıştır. Örn: "Müşterinin aylık kredi ödemesi, aylık maaşından yüksek olamaz." Bu tür mantıksal hatalar içeren kayıtlar, müşterinin diğer aylarındaki tutarlı rasyolar ile onarılmıştır.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/8_Finansal_Tutarlilik_Denetimi/1_finansal_aykiri_mantik.png}}
+    \caption{Finansal değişkenler arasındaki mantıksal uyumsuzluk analizi.}
+\end{figure}
+
+\subsection{Adım 9: Adli Veri Restorasyonu ve Anomali Düzeltme}
+Projenin en özgün kısmıdır. Z-skoru ve IQR yöntemleriyle tespit edilen anomaliler, rastgele silinmek yerine "Müşteri Bazlı Geçmiş Veri (Historical Data)" ile onarılmıştır. Eğer müşterinin bir ayındaki maaşı hatalı girilmişse, diğer 7 ayın medyanı ile "adli" bir restorasyon yapılmıştır.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.31\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/9_Anomali_Duzeltme/1_yas_onarim.png}}
+        \caption{Yaş Onarımı}
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.31\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/9_Anomali_Duzeltme/2_sorgu_onarim.png}}
+        \caption{Sorgu Sayısı}
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.31\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/9_Anomali_Duzeltme/3_gecikme_onarim.png}}
+        \caption{Gecikme Günü}
+    \end{subfigure}
+    \caption{Özellik bazlı adli veri restorasyon sonuçları.}
+\end{figure}
+
+\subsection{Adım 10: Veri Kalite Analizi ve Sağlık Puanlaması}
+Temizleme ve onarma işlemleri sonunda, veri setinin genel kalite skoru hesaplanmıştır. Veri doluluğu, tutarlılığı ve gürültü seviyesi üzerinden bir "Veri Sağlık Heatmap'i" oluşturulmuştur.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/10_Veri_Kalite_Analizi/15_global_kalite_heatmap.png}}
+        \caption{Genel Kalite Heatmap}
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/10_Veri_Kalite_Analizi/17_global_proje_skoru.png}}
+        \caption{Proje Hazırlık Skoru}
+    \end{subfigure}
+    \caption{Veri kalite analizi ve ML hazırlık puanlaması.}
+\end{figure}
+
+\subsection{Adım 11: Final İstatistik ve Korelasyon Analizi}
+Verinin son hali üzerinde tanımlayıcı istatistikler ve korelasyon analizi yapılmıştır. Hangi değişkenlerin "Kredi Skoru" üzerinde en yüksek etkiye sahip olduğu (örneğin gecikme günü ile negatif korelasyon) bu aşamada netleşmiştir.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth,keepaspectratio]{{Gorseller/1_Veri_Manipulasyonu/11_Final_Istatistik_ve_Korelasyon/1_global_korelasyon_heatmap.png}}
+    \caption{Final değişken korelasyon matrisi (Isı Haritası).}
+\end{figure}
+
+\subsection{Adım 12: Kategorik Değişkenlerin Kodlanması (Encoding)}
+Son aşamada, metinsel veriler (Meslek, Kredi Karışımı vb.) ML modellerinin anlayabileceği sayısal formatlara (Label Encoding ve One-Hot Encoding) dönüştürülmüştür. Bu adım ile veri seti tamamen algoritma eğitimine hazır hale getirilmiştir.
+
+\end{document}

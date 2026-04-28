@@ -48,13 +48,8 @@ def mega_hybrid_refined_11c3():
 
     setup_folders()
 
-    # AKILLI KONTROL
+    # AKILLI KONTROL (Otomatik Yeniden Tarama)
     mode = "1"
-    if os.path.exists(audit_file):
-        print("\nBİLGİ: Mevcut hibrit tarama sonuçları bulundu.")
-        print("[1] - Taramayı Yeniden Yap (Uzun sürer)")
-        print("[2] - Mevcut Verileri Kullan (Sadece görselleri güncelle)")
-        mode = input("Seçiminiz: ").strip()
 
     if mode == "2":
         res_df = pd.read_excel(audit_file)
@@ -65,7 +60,9 @@ def mega_hybrid_refined_11c3():
     # 1. Veri Yükle
     df = pd.read_excel(input_file, engine='openpyxl')
     df_sample = df.sample(n=5000, random_state=42)
-    X = df_sample.drop(columns=["İsim", "Kredi Skoru"])
+    # Predictif olmayan sütunları çıkar
+    drop_cols = ["ID", "Müşteri ID", "İsim", "Kimlik No", "Ay", "Kredi Skoru"]
+    X = df_sample.drop(columns=drop_cols, errors='ignore')
     y = df_sample["Kredi Skoru"]
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 

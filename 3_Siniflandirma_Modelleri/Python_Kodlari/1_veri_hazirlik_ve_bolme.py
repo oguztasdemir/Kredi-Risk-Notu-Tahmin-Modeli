@@ -15,7 +15,7 @@ except ImportError:
     base_path = r"c:\Users\User\Desktop\Kredi Hesaplaması"
 
 # Dosya yolları
-input_file = os.path.join(base_path, "1_Veri_Manipülasyonu", "Ciktilar", "3_Veri_Birlestirme", "birlesik_veri_türkçe.xlsx")
+input_file = os.path.join(base_path, "1_Veri_Manipülasyonu", "Ciktilar", "12_Kategorik_Kodlama", "ml_hazir_sayisal_veri.xlsx")
 output_dir = os.path.join(base_path, "3_Siniflandirma_Modelleri", "Ciktilar", "1_Veri_Hazirlik")
 model_bridge_path = os.path.join(base_path, "3_Siniflandirma_Modelleri", "Modeller", "selected_features.joblib")
 
@@ -30,23 +30,21 @@ def integrated_data_prep_341():
     setup_folders()
     
     # 1. Veriyi Yükle
+    print(f"> Veri yükleniyor: {input_file}")
     df = pd.read_excel(input_file, engine='openpyxl')
     
     # 2. ENTEGRASYON KONTROLÜ: Seçilen özellikleri oku
     if os.path.exists(model_bridge_path):
         print(f"> Özellik Seçimi (Phase 2) sonuçları yükleniyor...")
         selected_features = joblib.load(model_bridge_path)
-        # Sadece Seçilen Özellikler + İsim + Kredi Skoru
-        final_cols = ["İsim", "Kredi Skoru"] + selected_features
-        df = df[final_cols]
-        print(f"> BAŞARILI: Model eğitimi sadece seçilen {len(selected_features)} özellik üzerinden yapılacak.")
+        # Sadece Seçilen Özellikler + Kredi Skoru (İsim, ID vb. atıldı)
+        final_cols = ["Kredi Skoru"] + [c for c in selected_features if c in df.columns and c not in ["İsim", "Kredi Skoru", "ID", "Müşteri ID", "Kimlik No", "Ay"]]
+        df = df[[c for c in final_cols if c in df.columns]]
+        print(f"> BAŞARILI: Model eğitimi sadece seçilen özellikler üzerinden yapılacak.")
     else:
         print("> UYARI: Özellik seçimi dosyası bulunamadı! Tüm sütunlar kullanılacak.")
 
     # 3. Eğitim ve Tahmin Havuzu Olarak Böl
-    # Kredi Skoru NaN olmayanlar: Egitim
-    # Kredi Skoru NaN olanlar: Test (Tahmin Bekleyen)
-    
     train_data = df[df["Kredi Skoru"].notna()].copy()
     test_data = df[df["Kredi Skoru"].isna()].copy()
     

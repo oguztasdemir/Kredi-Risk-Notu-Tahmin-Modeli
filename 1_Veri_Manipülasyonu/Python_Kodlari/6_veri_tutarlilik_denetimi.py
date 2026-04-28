@@ -4,6 +4,8 @@ import os
 import time
 import sys
 import shutil
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Ana dizini bul ve sys.path'e ekle
 ana_dizin = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -128,3 +130,32 @@ def tutarlilik_denetimi():
 
 if __name__ == "__main__":
     tutarlilik_denetimi()
+
+# --- GÖRSELLEŞTİRME EKLEMESİ (ADIM 6) ---
+def gorsel_olustur_adim6():
+    print("\n> Pedagojik Görseller Hazırlanıyor (Adım 6)...")
+    gorsel_dir = os.path.join(base_path, "1_Veri_Manipülasyonu", "Gorseller", "6_Veri_Tutarlilik_Denetimi")
+    if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
+    
+    # Raporu geri okuyalım (Özet tablo için)
+    ozet_df = pd.read_excel(output_file, sheet_name='GENEL ÖZET')
+    plt.style.use('seaborn-v0_8-pastel')
+
+    # 1. Sütun Bazlı Başarı Oranları (Bar Chart)
+    plt.figure(figsize=(12,6))
+    sns.barplot(x="Sütun Adı", y="Başarı Oranı (%)", data=ozet_df, palette="viridis", hue="Sütun Adı", legend=False)
+    plt.axhline(95, color='red', linestyle='--', label='95% Eşik')
+    plt.title("Müşteri Verisi Tarihsel Tutarlılık Karnesi", fontsize=14, fontweight='bold')
+    plt.ylim(0, 110)
+    for i, rate in enumerate(ozet_df["Başarı Oranı (%)"]):
+        plt.text(i, rate + 2, f"%{rate}", ha='center', fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "1_tutarlilik_basari_bar.png"))
+    plt.close()
+
+    
+    print(f"Görseller kaydedildi: {gorsel_dir}")
+
+# Görselleştirmeyi çalıştır
+if os.path.exists(output_file):
+    gorsel_olustur_adim6()

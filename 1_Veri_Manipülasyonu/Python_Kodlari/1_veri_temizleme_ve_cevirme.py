@@ -2,6 +2,8 @@ import pandas as pd
 import os
 import shutil
 import sys
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Ana dizini bul ve sys.path'e ekle (kullanici.py'yi import edebilmek için)
 ana_dizin = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -150,3 +152,64 @@ clean_and_translate("egitim_verisi.csv")
 clean_and_translate("test_verisi.csv")
 
 print("\nTüm işlemler başarıyla tamamlandı!")
+
+# --- GÖRSELLEŞTİRME EKLEMESİ (ADIM 1) ---
+def gorsel_olustur_adim1():
+    print("\n> Pedagojik Görseller Hazırlanıyor (Adım 1)...")
+    gorsel_dir = os.path.join(base_path, "1_Veri_Manipülasyonu", "Gorseller", "1_Format_ve_Ceviri")
+    if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
+    plt.style.use('seaborn-v0_8-pastel')
+
+    # 1. Çeviri Oranı (Donut Chart)
+    plt.figure(figsize=(8,8))
+    translated_cols = len(column_translation)
+    total_cols = 28 # Yaklaşık
+    plt.pie([translated_cols, total_cols - translated_cols], 
+            labels=['Çevrilen Sütunlar', 'Sayısal/Sabitler'], 
+            autopct='%1.1f%%', colors=['#2ecc71', '#3498db'], startangle=90, wedgeprops={'width':0.4})
+    plt.title("Veri Seti Türkçe Dil Dönüşüm Oranı", fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "1_ceviri_orani_donut.png"))
+    plt.close()
+
+    # 2. Before-After Karşılaştırma Tablosu (Kapsamlı Forensik Kanıt)
+    print("> Kapsamlı Before-After Tablosu Hazırlanıyor...")
+    try:
+        # Karşılaştırma için en kritik 8 sütunu seçelim
+        target_cols_raw = ["ID", "Month", "Age", "Occupation", "Annual_Income", "Monthly_Inhand_Salary", "Num_Bank_Accounts", "Credit_Mix"]
+        target_cols_clean = ["ID", "Ay", "Yaş", "Meslek", "Yıllık Gelir", "Aylık Net Maaş", "Banka Hesabı Sayısı", "Kredi Karışımı"]
+        
+        # Ham veriyi oku (İlk 8 satır)
+        raw_path = os.path.join(base_path, "0_Dataset", "egitim_verisi.csv")
+        raw_df = pd.read_csv(raw_path, nrows=8)[target_cols_raw]
+        
+        # Temizlenmiş veriyi oku (İlk 8 satır)
+        clean_path = os.path.join(base_path, "1_Veri_Manipülasyonu", "Ciktilar", "1_Format_ve_Ceviri", "egitim_verisi.xlsx")
+        clean_df = pd.read_excel(clean_path, nrows=8)[target_cols_clean]
+        
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 10))
+        ax1.axis('off')
+        ax2.axis('off')
+        
+        # Before Tablosu
+        t1 = ax1.table(cellText=raw_df.values, colLabels=raw_df.columns, loc='center', cellLoc='left')
+        t1.auto_set_font_size(False); t1.set_fontsize(8)
+        t1.scale(1, 1.8) # Tabloyu dikeyde uzat
+        ax1.set_title("1. ADIM: ÖNCE (HAM VERİ - NOISY & ENGLISH)", fontsize=14, fontweight='bold', color='#c0392b', pad=20)
+        
+        # After Tablosu
+        t2 = ax2.table(cellText=clean_df.values, colLabels=clean_df.columns, loc='center', cellLoc='left')
+        t2.auto_set_font_size(False); t2.set_fontsize(8)
+        t2.scale(1, 1.8) # Tabloyu dikeyde uzat
+        ax2.set_title("1. ADIM: SONRA (TEMİZLENMİŞ VERİ - CLEAN & TÜRKÇE)", fontsize=14, fontweight='bold', color='#27ae60', pad=20)
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(gorsel_dir, "2_before_after_karsilastirma.png"), dpi=300)
+        plt.close()
+    except Exception as e:
+        print(f"Uyarı: Kapsamlı Before-After görseli oluşturulamadı: {e}")
+
+    
+    print(f"Görseller kaydedildi: {gorsel_dir}")
+
+gorsel_olustur_adim1()

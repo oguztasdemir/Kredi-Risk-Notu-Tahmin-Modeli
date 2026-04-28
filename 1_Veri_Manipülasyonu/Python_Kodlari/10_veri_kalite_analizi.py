@@ -48,26 +48,7 @@ def gorsel_olustur_adim10(report_df, gorsel_dir):
     plt.savefig(os.path.join(gorsel_dir, "2_global_kalite_bar.png"))
     plt.close()
 
-    # 3-11. İlk 9 Sütun İçin Küçük Kartlar (9 Adet)
-    for i, row in enumerate(report_df.head(9).itertuples()):
-        plt.figure(figsize=(6,4))
-        plt.text(0.5, 0.5, f"%{row._2}", fontsize=60, color='#3498db', ha='center', va='center', fontweight='bold')
-        plt.text(0.5, 0.2, f"{row._1}", fontsize=18, color='#2c3e50', ha='center')
-        plt.axis('off')
-        plt.title("Doluluk Oranı", fontsize=12)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, f"{i+3}_{row._1}_kart.png"))
-        plt.close()
 
-    # 12. Final Başarı Bayrağı
-    plt.figure(figsize=(6,4))
-    plt.text(0.5, 0.5, "BAŞARILI", fontsize=60, color='#2ecc71', ha='center', va='center', fontweight='bold')
-    plt.text(0.5, 0.2, "Veri Temizleme Tamamlandı!", fontsize=16, color='#27ae60', ha='center')
-    plt.axis('off')
-    plt.title("PROJE BAŞARI BAYRAĞI!", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "12_final_basari.png"))
-    plt.close()
 
     # --- EK 5 GLOBAL GÖRSEL ---
     # 13. Global ML Hazırlık Skorları (Bar)

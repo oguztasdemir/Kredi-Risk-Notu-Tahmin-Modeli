@@ -66,14 +66,6 @@ def gorsel_olustur_adim12(df_original, df_encoded, mappings):
         plt.savefig(os.path.join(gorsel_dir, f"{i+3}_{col}_dagilim.png"))
         plt.close()
 
-    # 8. Dönüşüm Başarısı (Gauge)
-    plt.figure(figsize=(6,4))
-    plt.text(0.5, 0.5, "HAZIR", fontsize=80, color='#2ecc71', ha='center', va='center', fontweight='bold')
-    plt.text(0.5, 0.2, "Model Eğitimi İçin %100 Sayısal", fontsize=16, color='#27ae60', ha='center')
-    plt.axis('off')
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "8_donusum_hazir_bayragi.png"))
-    plt.close()
 
     # 9. Isı Haritası (Kısmi - Kodlanmış Sütunlar)
     plt.figure(figsize=(12,8))
@@ -84,13 +76,41 @@ def gorsel_olustur_adim12(df_original, df_encoded, mappings):
     plt.savefig(os.path.join(gorsel_dir, "9_kodlanmis_korelasyon.png"))
     plt.close()
 
-    # 10. Veri Tipi Değişimi (Before vs After)
-    plt.figure(figsize=(10,6))
-    plt.bar(['Eski (Object)', 'Yeni (Sayısal)'], [encoded_count, len(df_encoded.columns)], color=['#e74c3c', '#2ecc71'])
-    plt.title("Veri Tiplerindeki Büyük Değişim", fontsize=14)
-    plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "10_tip_degisimi_bar.png"))
     plt.close()
+
+    # 11. Kodlama Dönüşüm Forensik Paneli (Before-After)
+    print("> Kodlama Dönüşüm Paneli Hazırlanıyor...")
+    try:
+        # Kodlanan sütunlardan bir kesit alalım
+        target_cols = [c for c in mappings.keys() if c != "Kredi Skoru"][:5]
+        
+        # Orijinal Metin Hali
+        before_df = df_original[target_cols].head(8)
+        # Kodlanmış Sayısal Hali
+        after_df = df_encoded[target_cols].head(8)
+        
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 10))
+        ax1.axis('off')
+        ax2.axis('off')
+        
+        # Before (Metin)
+        t1 = ax1.table(cellText=before_df.values, colLabels=before_df.columns, loc='center', cellLoc='left')
+        t1.auto_set_font_size(False); t1.set_fontsize(8)
+        t1.scale(1, 1.8)
+        ax1.set_title("ADIM 12: ÖNCE (KATEGORİK - METİNSEL VERİ)", fontsize=14, fontweight='bold', color='#f39c12', pad=20)
+        
+        # After (Sayısal)
+        t2 = ax2.table(cellText=after_df.values, colLabels=after_df.columns, loc='center', cellLoc='left')
+        t2.auto_set_font_size(False); t2.set_fontsize(8)
+        t2.scale(1, 1.8)
+        ax2.set_title("ADIM 12: SONRA (NUMERİK - ENCODED DATA)", fontsize=14, fontweight='bold', color='#2ecc71', pad=20)
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(gorsel_dir, "11_kodlama_forensik_panel.png"), dpi=300)
+        plt.close()
+    except Exception as e:
+        print(f"Uyarı: Kodlama Forensik Paneli oluşturulamadı: {e}")
 
 def kodlama_adim12():
     print("\n" + "="*50)

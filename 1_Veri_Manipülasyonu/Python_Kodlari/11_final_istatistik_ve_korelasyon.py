@@ -111,18 +111,6 @@ def gorsel_olustur_adim11(df, corr_matrix, stats_df):
     plt.savefig(os.path.join(gorsel_dir, "8_egrilik_analizi_skewness.png"))
     plt.close()
 
-    # 9. Veri Doluluk ve Güven Skoru
-    plt.figure(figsize=(8, 5))
-    total_cells = df.size
-    total_nulls = df.isna().sum().sum()
-    health_score = ((total_cells - total_nulls) / total_cells) * 100
-    plt.text(0.5, 0.5, f"%{health_score:.2f}", fontsize=100, color='green', ha='center', va='center', fontweight='bold')
-    plt.text(0.5, 0.2, "Global Veri Sağlık Notu", fontsize=24, color='darkgreen', ha='center')
-    plt.axis('off')
-    plt.title("ADIM 11: VERİ SETİ SON DURUM GÜVEN ENDEKSİ", fontsize=16)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "9_global_saglik_notu.png"))
-    plt.close()
 
     # 10. Hedef Değişken (Kredi Skoru) Dağılımı
     if "Kredi Skoru" in df.columns:

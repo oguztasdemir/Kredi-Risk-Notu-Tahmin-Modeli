@@ -74,15 +74,6 @@ def gorsel_olustur_adim7(df, prev_df, gorsel_dir):
     plt.savefig(os.path.join(gorsel_dir, "10_bakiye_violin.png"))
     plt.close()
 
-    # 11. Başarı Bayrağı
-    plt.figure(figsize=(6,4))
-    plt.text(0.5, 0.5, "%98", fontsize=100, color='#3498db', ha='center', va='center', fontweight='bold')
-    plt.text(0.5, 0.2, "Finansal Doğruluk", fontsize=20, color='#2980b9', ha='center')
-    plt.axis('off')
-    plt.title("Adım 7 Başarı Bayrağı!", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "11_basari_bayragi.png"))
-    plt.close()
 
     # --- EK 5 GLOBAL GÖRSEL ---
     # 12. Global Korelasyon Haritası (Heatmap)

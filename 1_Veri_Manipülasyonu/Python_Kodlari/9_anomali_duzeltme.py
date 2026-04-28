@@ -51,24 +51,20 @@ def gorsel_olustur_adim9(ozet_df, gorsel_dir):
     plt.savefig(os.path.join(gorsel_dir, "1_final_onarım_donut.png"))
     plt.close()
 
-    # 2-11. En Çok Onarılan 10 Sütun (10 Adet)
+    # 2. Anomali Onarım Dashboard (Kapsamlı Birleştirme)
+    print("> Anomali Onarım Dashboard Hazırlanıyor...")
+    fig, axes = plt.subplots(2, 5, figsize=(20, 10))
+    axes = axes.flatten()
+    
     for i, row in enumerate(ozet_df.sort_values(by="Aykırı Değer", ascending=False).head(10).itertuples()):
-        plt.figure(figsize=(10,6))
-        plt.bar(['Onarılan Hata'], [row._5], color='#e67e22')
-        plt.title(f"{row._1} - Onarım Sayısı", fontsize=12)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, f"{i+2}_{row._1}_onarım_bar.png"))
-        plt.close()
-
-    # 12. Başarı Bayrağı
-    plt.figure(figsize=(6,4))
-    plt.text(0.5, 0.5, "%100", fontsize=100, color='#f39c12', ha='center', va='center', fontweight='bold')
-    plt.text(0.5, 0.2, "Anomali Temizliği", fontsize=20, color='#d35400', ha='center')
-    plt.axis('off')
-    plt.title("Adım 9 Başarı Bayrağı!", fontsize=14)
+        axes[i].bar(['Onarılan Hata'], [row._5], color='#e67e22')
+        axes[i].set_title(f"{row._1}", fontsize=10, fontweight='bold')
+        
+    plt.suptitle("ANOMALİ ONARIM VE VERİ RESTORASYON DASHBOARD", fontsize=16, fontweight='bold', y=1.02)
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "12_basari_bayragi.png"))
+    plt.savefig(os.path.join(gorsel_dir, "2_anomali_onarım_dashboard.png"), dpi=300)
     plt.close()
+
 
     # --- EK 5 GLOBAL GÖRSEL ---
     # 13. Global Onarım Dağılımı (Bar)
@@ -97,16 +93,49 @@ def gorsel_olustur_adim9(ozet_df, gorsel_dir):
     plt.savefig(os.path.join(gorsel_dir, "15_global_onarım_heatmap.png"))
     plt.close()
 
-    # 16. Sağlam vs Onarılan Trendi (Area Plot)
-    plt.figure(figsize=(12,6))
-    plt.fill_between(ozet_df["Sütun Adı"], ozet_df["Sağlam Değer"], color="skyblue", alpha=0.4, label='Sağlam')
-    plt.fill_between(ozet_df["Sütun Adı"], ozet_df["Aykırı Değer"], color="orange", alpha=0.5, label='Onarılan')
-    plt.xticks(rotation=45, ha='right')
-    plt.legend()
-    plt.title("Veri Seti Sağlık Profili (Global)", fontsize=14)
-    plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "16_global_saglik_profili.png"))
     plt.close()
+
+    # 17. Anomali Onarım Forensik Paneli (Kapsamlı Before-After)
+    print("> Anomali Onarım Forensik Paneli Hazırlanıyor...")
+    try:
+        # Karşılaştırma için en çok hata düzeltilen sütunları seçelim
+        target_cols = ["ID", "Ay", "Yaş", "Meslek", "Banka Hesabı Sayısı", "Kredi Sayısı", "Ödeme Gecikme Günü"]
+        
+        # Orijinal veriden (Adım 3'teki ham birleştirilmiş) hatalı bir kesit alalım
+        # Not: Gerçek hatalı verileri bulmak için manuel filtreleme simülasyonu yapıyoruz
+        df_before = pd.read_excel(original_file, nrows=2000)[target_cols]
+        # Tip dönüşümü (Kıyaslama için sayısal yapalım)
+        df_before["Yaş"] = pd.to_numeric(df_before["Yaş"], errors='coerce')
+        df_before["Banka Hesabı Sayısı"] = pd.to_numeric(df_before["Banka Hesabı Sayısı"], errors='coerce')
+        # Hatalı olanlardan bir örneklem (Örn: Yaş > 80 olanlar veya Banka Hesabı > 50 olanlar)
+        anomalies = df_before[(df_before["Yaş"] > 80) | (df_before["Banka Hesabı Sayısı"] > 50)].head(5)
+        
+        # Onarılmış veriden aynı kişileri (ID üzerinden) bulalım
+        df_after = pd.read_excel(output_file)[target_cols]
+        restored = df_after[df_after["ID"].isin(anomalies["ID"])]
+        
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 8))
+        ax1.axis('off')
+        ax2.axis('off')
+        
+        # Before (Anomali)
+        t1 = ax1.table(cellText=anomalies.values, colLabels=anomalies.columns, loc='center', cellLoc='left')
+        t1.auto_set_font_size(False); t1.set_fontsize(9)
+        t1.scale(1, 2)
+        ax1.set_title("ADIM 9: ÖNCE (ANOMALİ - HATALI VERİ GİRİŞLERİ)", fontsize=14, fontweight='bold', color='#e67e22', pad=20)
+        
+        # After (Onarılmış)
+        t2 = ax2.table(cellText=restored.values, colLabels=restored.columns, loc='center', cellLoc='left')
+        t2.auto_set_font_size(False); t2.set_fontsize(9)
+        t2.scale(1, 2)
+        ax2.set_title("ADIM 9: SONRA (RESTORASYON - MEDİAN/PATTERN ONARIMI)", fontsize=14, fontweight='bold', color='#27ae60', pad=20)
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(gorsel_dir, "17_anomali_forensik_panel.png"), dpi=300)
+        plt.close()
+    except Exception as e:
+        print(f"Uyarı: Anomali Forensik Paneli oluşturulamadı: {e}")
 
     # 17. Final Kalite Notu (Bar)
     plt.figure(figsize=(10,6))

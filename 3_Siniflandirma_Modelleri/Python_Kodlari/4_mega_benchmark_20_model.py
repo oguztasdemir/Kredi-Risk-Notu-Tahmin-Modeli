@@ -93,7 +93,9 @@ def intelligent_benchmark_344():
     setup_folders()
 
     df = pd.read_excel(input_file, engine='openpyxl')
-    X = df.drop(columns=["İsim", "Kredi Skoru"])
+    # Predictif olmayan sütunları çıkar
+    drop_cols = ["ID", "Müşteri ID", "İsim", "Kimlik No", "Ay", "Kredi Skoru"]
+    X = df.drop(columns=drop_cols, errors='ignore')
     y = df["Kredi Skoru"]
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.20, random_state=42, stratify=y)
 
@@ -121,13 +123,8 @@ def intelligent_benchmark_344():
         "QDA": QuadraticDiscriminantAnalysis()
     }
 
-    # AKILLI KONTROL PROMPT
+    # AKILLI KONTROL PROMPT (Otomatik Yeniden Eğitim)
     mode = "1"
-    if os.path.exists(os.path.join(output_dir, "intelligent_benchmark_results.xlsx")):
-        print("\nBİLGİ: Mevcut benchmark sonuçları bulundu.")
-        print("[1] - Tümünü Yeniden Eğit (Yenilenmiş Özellikler ve Scaling ile)")
-        print("[2] - Mevcutları Yükle (Sadece görselleri güncelle)")
-        mode = input("Seçiminiz: ").strip()
 
     results = []
     for name, model in models_dict.items():
