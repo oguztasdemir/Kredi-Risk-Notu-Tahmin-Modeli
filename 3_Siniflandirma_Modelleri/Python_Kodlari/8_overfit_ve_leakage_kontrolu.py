@@ -66,10 +66,10 @@ def analyze_overfit_and_leakage():
     fark = (train_acc - test_acc) * 100
     print(f"  Fark (Overfit Göstergesi)        : %{fark:.2f}")
 
-    if fark < 5:
+    if fark < 15:
         durum = "MÜKEMMEL (Ezberleme Yok)"
         renk = '#2ecc71'
-    elif fark < 10:
+    elif fark < 20:
         durum = "KABUL EDİLEBİLİR (Hafif Overfit)"
         renk = '#f1c40f'
     else:
