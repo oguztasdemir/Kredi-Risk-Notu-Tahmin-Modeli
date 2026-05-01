@@ -44,3 +44,6 @@ Projeyi yerel ortamınızda çalıştırmak için:
 
 ## Final Notu
 Bu çalışma, veri sızıntısından arındırılmış, %81.31 test başarısına sahip ve denetlenebilir (Forensic Audit) raporlar üreten akademik standartlarda bir makine öğrenmesi projesidir.
+
+---
+**Not:** Proje kapsamında eğitilen yüksek boyutlu model dosyaları (`.joblib`), GitHub'ın dosya boyutu limitlerini (100MB) aşması nedeniyle bu depoya dahil edilmemiştir. Bu modeller yerel ortamda eğitim scriptleri çalıştırılarak yeniden oluşturulabilir.
