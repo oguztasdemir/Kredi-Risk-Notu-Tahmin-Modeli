@@ -68,7 +68,10 @@ def gorsel_olustur_adim5(df, original_df, gorsel_dir):
     
     for i, col in enumerate(kritik):
         fark = (df[col].astype(str) != original_df[col].astype(str)).sum()
-        axes[i].bar(['Doğru Veri', 'Onarılan Hata'], [len(df)-fark, fark], color=['#3498db', '#f1c40f'])
+        bars = axes[i].bar(['Doğru Veri', 'Onarılan Hata'], [len(df)-fark, fark], color=['#3498db', '#f1c40f'])
+        for bar in bars:
+            h = bar.get_height()
+            axes[i].text(bar.get_x() + bar.get_width()/2, h + 10, str(h), ha='center', fontsize=8, fontweight='bold')
         axes[i].set_title(f"{col} Düzeltmeleri", fontsize=10, fontweight='bold')
         
     # Boş kalan son kareyi temizle
@@ -101,7 +104,10 @@ def gorsel_olustur_adim5(df, original_df, gorsel_dir):
     # 12. Sütun Bazlı Doluluk Oranları (Bar)
     plt.figure(figsize=(12,8))
     fill_rates = (1 - df.isna().mean()) * 100
-    fill_rates.sort_values().plot(kind='barh', color='#1abc9c')
+    fill_rates = fill_rates.sort_values()
+    bars = plt.barh(fill_rates.index, fill_rates.values, color='#1abc9c')
+    for bar in bars:
+        plt.text(bar.get_width() + 0.5, bar.get_y() + bar.get_height()/2, f'%{bar.get_width():.1f}', va='center', fontweight='bold', fontsize=8)
     plt.title("Hangi Sütun Ne Kadar Dolu? (Tüm Veri)", fontsize=14)
     plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "12_global_doluluk_oranlari.png"))

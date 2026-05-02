@@ -95,11 +95,19 @@ def gorsel_olustur_adim8(ozet_df, gorsel_dir):
     axes = axes.flatten()
     
     for i, row in enumerate(ozet_df.head(10).itertuples()):
-        axes[i].barh(['Geçti (✓)', 'Kaldı (X)'], [row._2, row._3], color=['#27ae60', '#c0392b'])
+        bars = axes[i].barh(['Geçti (✓)', 'Kaldı (X)'], [row._2, row._3], color=['#27ae60', '#c0392b'])
+        for bar in bars:
+            w = bar.get_width()
+            axes[i].text(w + 5, bar.get_y() + bar.get_height()/2, str(w), va='center', fontsize=8, fontweight='bold')
         axes[i].set_title(f"{row._1} Karnesi", fontsize=10, fontweight='bold')
         
     plt.suptitle("FİNANSAL TUTARLILIK DENETİM VE GEÇERLİLİK DASHBOARD", fontsize=16, fontweight='bold', y=1.02)
-    plt.tight_layout()
+    
+    # Metodoloji Notu
+    fig.text(0.5, 0.01, "Denetim Metodu: Forensic Cluster Analysis (FCA) - Zaman Serisi Tutarlılık Kontrolü", 
+             ha='center', fontsize=10, bbox=dict(facecolor='white', alpha=0.5, boxstyle='round'))
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.savefig(os.path.join(gorsel_dir, "2_denetim_karneleri_dashboard.png"), dpi=300)
     plt.close()
 
@@ -107,7 +115,10 @@ def gorsel_olustur_adim8(ozet_df, gorsel_dir):
     # --- EK 5 GLOBAL GÖRSEL ---
     # 13. Global Başarı Oranları (Bar)
     plt.figure(figsize=(12,8))
-    sns.barplot(x="Başarı Oranı (%)", y="Sütun Adı", data=ozet_df.sort_values(by="Başarı Oranı (%)"), palette="coolwarm")
+    plot_df = ozet_df.sort_values(by="Başarı Oranı (%)")
+    bars = sns.barplot(x="Başarı Oranı (%)", y="Sütun Adı", data=plot_df, palette="coolwarm")
+    for i, v in enumerate(plot_df["Başarı Oranı (%)"]):
+        plt.text(v + 0.5, i, f'%{v:.1f}', color='black', va='center', fontweight='bold')
     plt.title("Tüm Sütunların Denetim Geçme Oranları", fontsize=14)
     plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "13_global_basari_oranlari.png"))

@@ -1,7 +1,0 @@
-Model Tipi: StackingClassifier
-Baz Modeller: ET, RF, XGB
-Meta Model: Logistic Regression
-Accuracy: %83.67
-F1-Score: %83.68
-Eğitim Süresi: 147.42 saniye
-Tarih: 2026-04-28 20:24:37

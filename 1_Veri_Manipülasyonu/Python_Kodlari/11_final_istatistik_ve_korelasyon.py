@@ -37,36 +37,37 @@ def gorsel_olustur_adim11(df, corr_matrix, stats_df):
     plt.savefig(os.path.join(gorsel_dir, "1_global_korelasyon_heatmap.png"))
     plt.close()
 
-    # 2. Kredi Skoru ile En Yakın Arkadaşlar (Pozitif Korelasyon)
-    if "Kredi Skoru" in corr_matrix.columns:
-        plt.figure(figsize=(10, 6))
-        target_corr = corr_matrix["Kredi Skoru"].sort_values(ascending=False).drop("Kredi Skoru")
-        top_pos = target_corr.head(5)
-        sns.barplot(x=top_pos.values, y=top_pos.index, palette="Greens_d")
-        plt.title("Kredi Skoru'nu Arttıran En Önemli 5 Özellik", fontsize=14)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, "2_pozitif_kredi_arkadaslari.png"))
-        plt.close()
-
-        # 3. Kredi Skoru'nu Üzenler (Negatif Korelasyon)
-        plt.figure(figsize=(10, 6))
-        top_neg = target_corr.tail(5)
-        sns.barplot(x=top_neg.values, y=top_neg.index, palette="Reds_d")
-        plt.title("Kredi Skoru'nu Düşüren En Önemli 5 Özellik", fontsize=14)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, "3_negatif_kredi_dusmanlari.png"))
-        plt.close()
-
-    # 4. Veri Dağılım Genişliği (Boxplot - Normalleştirilmiş)
-    plt.figure(figsize=(15, 8))
-    # Sadece sayısal ve çok varyansı olanları seçelim
-    num_cols = df.select_dtypes(include=[np.number]).columns
-    df_norm = (df[num_cols] - df[num_cols].mean()) / df[num_cols].std()
-    sns.boxplot(data=df_norm, palette="Set3")
-    plt.xticks(rotation=45, ha='right')
-    plt.title("Sayısal Değerlerin Oyun Alanı (Normalleştirilmiş Dağılım)", fontsize=14)
+    # 2. Meslek Dağılımı (Bar)
+    plt.figure(figsize=(12,8))
+    m_counts = df["Meslek"].value_counts()
+    bars = sns.barplot(x=m_counts.values, y=m_counts.index, palette="viridis")
+    for i, v in enumerate(m_counts.values):
+        plt.text(v + 10, i, str(v), color='black', va='center', fontweight='bold', fontsize=10)
+    plt.title("Müşteri Meslek Dağılımı", fontsize=14)
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "4_veri_dagilim_kutulari.png"))
+    plt.savefig(os.path.join(gorsel_dir, "02_meslek_dagilimi.png"))
+    plt.close()
+
+    # 3. Kredi Türü Dağılımı (Bar)
+    plt.figure(figsize=(12,6))
+    k_counts = df["Kredi Türü"].value_counts()
+    bars = sns.barplot(x=k_counts.values, y=k_counts.index, palette="magma")
+    for i, v in enumerate(k_counts.values):
+        plt.text(v + 10, i, str(v), color='black', va='center', fontweight='bold', fontsize=10)
+    plt.title("Müşteri Kredi Türü Dağılımı", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "03_kredi_turu_dagilimi.png"))
+    plt.close()
+
+    # 4. Ödeme Davranışı (Bar)
+    plt.figure(figsize=(12,6))
+    o_counts = df["Ödeme Davranışı"].value_counts()
+    bars = sns.barplot(x=o_counts.values, y=o_counts.index, palette="cubehelix")
+    for i, v in enumerate(o_counts.values):
+        plt.text(v + 10, i, str(v), color='black', va='center', fontweight='bold', fontsize=10)
+    plt.title("Ödeme Davranışı Dağılımı", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "04_odeme_davranisi_dagilimi.png"))
     plt.close()
 
     # 5. Ortalama Değerler Tablosu (Görsel)
@@ -74,7 +75,9 @@ def gorsel_olustur_adim11(df, corr_matrix, stats_df):
     numeric_stats = stats_df.apply(pd.to_numeric, errors='coerce').dropna(how='all')
     if "mean" in numeric_stats.index:
         means = numeric_stats.loc["mean"].dropna().sort_values()
-        plt.barh(means.index, means.values, color='skyblue')
+        bars = plt.barh(means.index, means.values, color='skyblue')
+        for bar in bars:
+            plt.text(bar.get_width() + 0.1, bar.get_y() + bar.get_height()/2, f'{bar.get_width():.1f}', va='center', fontweight='bold')
         plt.title("Sütunların Ortalama Büyüklükleri", fontsize=14)
         plt.tight_layout()
         plt.savefig(os.path.join(gorsel_dir, "5_ortalama_degerler_bar.png"))
@@ -103,7 +106,10 @@ def gorsel_olustur_adim11(df, corr_matrix, stats_df):
     plt.figure(figsize=(12, 6))
     skewness = df[num_cols].skew().sort_values()
     colors = ['red' if abs(x) > 1 else 'green' for x in skewness.values]
-    plt.bar(skewness.index, skewness.values, color=colors)
+    bars = plt.bar(skewness.index, skewness.values, color=colors)
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + (0.02 if yval > 0 else -0.1), f'{yval:.2f}', ha='center', fontsize=8, fontweight='bold')
     plt.xticks(rotation=45, ha='right')
     plt.axhline(y=0, color='black', linestyle='-')
     plt.title("Veri Dengesi: Gülen ve Üzülen Sütunlar (Skewness)", fontsize=14)

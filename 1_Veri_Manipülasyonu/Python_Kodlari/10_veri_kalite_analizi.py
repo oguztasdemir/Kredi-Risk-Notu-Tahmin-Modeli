@@ -41,20 +41,24 @@ def gorsel_olustur_adim10(report_df, gorsel_dir):
     plt.close()
 
     # 2. Global Kalite Puanları (Bar)
-    plt.figure(figsize=(12,8))
-    sns.barplot(x="Kalite Puanı", y="Sütun Adı", data=report_df.sort_values(by="Kalite Puanı", ascending=False), palette="viridis")
-    plt.title("Her Sütun İçin Kalite Karnesi", fontsize=14)
+    plt.figure(figsize=(12,10))
+    plot_df = report_df.sort_values(by="Kalite Puanı", ascending=False)
+    bars = sns.barplot(x="Kalite Puanı", y="Sütun Adı", data=plot_df, palette="viridis")
+    for i, v in enumerate(plot_df["Kalite Puanı"]):
+        plt.text(v + 1, i, f'{v:.1f}', color='black', va='center', fontweight='bold', fontsize=10)
+    plt.title("Tüm Sütunlar İçin Veri Kalite Karnesi", fontsize=15, fontweight='bold')
     plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "2_global_kalite_bar.png"))
     plt.close()
 
-
-
     # --- EK 5 GLOBAL GÖRSEL ---
     # 13. Global ML Hazırlık Skorları (Bar)
-    plt.figure(figsize=(12,8))
-    sns.barplot(x="Doluluk/Sağlık (%)", y="Sütun Adı", data=report_df.sort_values(by="Doluluk/Sağlık (%)"), palette="magma")
-    plt.title("Tüm Sütunların ML Modelleme Hazırlık Durumu", fontsize=14)
+    plt.figure(figsize=(12,10))
+    plot_df_ml = report_df.sort_values(by="Doluluk/Sağlık (%)")
+    bars = sns.barplot(x="Doluluk/Sağlık (%)", y="Sütun Adı", data=plot_df_ml, palette="magma")
+    for i, v in enumerate(plot_df_ml["Doluluk/Sağlık (%)"]):
+        plt.text(v + 1, i, f'%{v:.1f}', color='black', va='center', fontweight='bold', fontsize=10)
+    plt.title("Tüm Sütunların ML Modelleme Hazırlık Durumu", fontsize=15, fontweight='bold')
     plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "13_global_ml_hazirlik.png"))
     plt.close()
@@ -80,7 +84,9 @@ def gorsel_olustur_adim10(report_df, gorsel_dir):
     # 16. Durum Dağılımı (Bar)
     plt.figure(figsize=(10,6))
     counts = report_df["Durum"].value_counts()
-    sns.barplot(x=counts.index, y=counts.values, palette="muted")
+    bars = sns.barplot(x=counts.index, y=counts.values, palette="muted")
+    for i, v in enumerate(counts.values):
+        plt.text(i, v + 0.1, str(v), ha='center', fontweight='bold')
     plt.xticks(rotation=45, ha='right') # TAŞMAYI ÖNLEMEK İÇİN ROTASYON
     plt.title("Sütunlarımızın Final Durum Dağılımı", fontsize=14)
     plt.tight_layout()

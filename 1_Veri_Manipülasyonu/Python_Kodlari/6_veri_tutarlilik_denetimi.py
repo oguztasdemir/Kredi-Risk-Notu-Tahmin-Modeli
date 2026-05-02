@@ -143,16 +143,43 @@ def gorsel_olustur_adim6():
 
     # 1. Sütun Bazlı Başarı Oranları (Bar Chart)
     plt.figure(figsize=(12,6))
-    sns.barplot(x="Sütun Adı", y="Başarı Oranı (%)", data=ozet_df, palette="viridis", hue="Sütun Adı", legend=False)
+    bars = sns.barplot(x="Sütun Adı", y="Başarı Oranı (%)", data=ozet_df, palette="viridis", hue="Sütun Adı", legend=False)
     plt.axhline(95, color='red', linestyle='--', label='95% Eşik')
-    plt.title("Müşteri Verisi Tarihsel Tutarlılık Karnesi", fontsize=14, fontweight='bold')
-    plt.ylim(0, 110)
+    
     for i, rate in enumerate(ozet_df["Başarı Oranı (%)"]):
-        plt.text(i, rate + 2, f"%{rate}", ha='center', fontweight='bold')
+        plt.text(i, rate + 2, f"%{rate:.1f}", ha='center', fontweight='bold')
+    
+    plt.title("Müşteri Verisi Tarihsel Tutarlılık Karnesi", fontsize=14, fontweight='bold')
+    plt.ylim(0, 115)
     plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "1_tutarlilik_basari_bar.png"))
     plt.close()
 
+    # 2. Denetim Dashboard (Geçti/Kaldı)
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    
+    # Başarılı vs Hatalı Toplam
+    tik = ozet_df["Başarılı (✓)"].sum()
+    carpi = ozet_df["Hatalı (X)"].sum()
+    axes[0].pie([tik, carpi], labels=['Tutarlı (✓)', 'Tutarsız (X)'], autopct='%1.1f%%', colors=['#2ecc71', '#e74c3c'], startangle=90)
+    axes[0].set_title("Genel Veri Bütünlüğü Oranı")
+    
+    # En Hatalı Sütunlar
+    hatalilar = ozet_df.sort_values(by="Hatalı (X)", ascending=False).head(5)
+    sns.barplot(x="Hatalı (X)", y="Sütun Adı", data=hatalilar, ax=axes[1], palette="Reds_r")
+    for i, v in enumerate(hatalilar["Hatalı (X)"]):
+        axes[1].text(v + 1, i, str(v), va='center', fontweight='bold')
+    axes[1].set_title("En Çok Tutarsızlık Tespit Edilen 5 Alan")
+    
+    plt.suptitle("KATEGORİK VERİ ADLİ DENETİM (FORENSIC AUDIT) DASHBOARD", fontsize=16, fontweight='bold')
+    
+    # Not Ekle
+    fig.text(0.5, 0.01, "Denetim Kriteri: Müşteri ID bazlı tarihsel veri eşleşme kontrolü (Zam/Hata payı dahil).", 
+             ha='center', fontsize=10, bbox=dict(facecolor='white', alpha=0.5, boxstyle='round'))
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(os.path.join(gorsel_dir, "2_tutarlilik_dashboard.png"), dpi=300)
+    plt.close()
     
     print(f"Görseller kaydedildi: {gorsel_dir}")
 

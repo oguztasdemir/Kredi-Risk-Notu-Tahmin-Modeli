@@ -51,16 +51,26 @@ def gorsel_olustur_adim9(ozet_df, gorsel_dir):
     plt.savefig(os.path.join(gorsel_dir, "1_final_onarım_donut.png"))
     plt.close()
 
-    # 2. Anomali Onarım Dashboard (Kapsamlı Birleştirme)
+    # 2. Anomali Onarım Dashboard (Tüm Sütunlar)
     print("> Anomali Onarım Dashboard Hazırlanıyor...")
-    fig, axes = plt.subplots(2, 5, figsize=(20, 10))
+    # Sütun sayısına göre satır/sütun sayısını hesapla
+    n_cols_data = len(ozet_df)
+    n_rows = (n_cols_data // 5) + (1 if n_cols_data % 5 != 0 else 0)
+    fig, axes = plt.subplots(n_rows, 5, figsize=(20, 5 * n_rows))
     axes = axes.flatten()
     
-    for i, row in enumerate(ozet_df.sort_values(by="Aykırı Değer", ascending=False).head(10).itertuples()):
-        axes[i].bar(['Onarılan Hata'], [row._5], color='#e67e22')
+    for i, row in enumerate(ozet_df.sort_values(by="Aykırı Değer", ascending=False).itertuples()):
+        bars = axes[i].bar(['Onarılan Hata'], [row._5], color='#e67e22')
+        for bar in bars:
+            h = bar.get_height()
+            axes[i].text(bar.get_x() + bar.get_width()/2, h + 1, str(int(h)), ha='center', fontweight='bold', fontsize=10)
         axes[i].set_title(f"{row._1}", fontsize=10, fontweight='bold')
         
-    plt.suptitle("ANOMALİ ONARIM VE VERİ RESTORASYON DASHBOARD", fontsize=16, fontweight='bold', y=1.02)
+    # Boş kalan kareleri temizle
+    for j in range(len(ozet_df), len(axes)):
+        fig.delaxes(axes[j])
+        
+    plt.suptitle("TÜM SÜTUNLAR İÇİN ANOMALİ ONARIM DASHBOARD", fontsize=16, fontweight='bold', y=1.02)
     plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "2_anomali_onarım_dashboard.png"), dpi=300)
     plt.close()
@@ -69,7 +79,10 @@ def gorsel_olustur_adim9(ozet_df, gorsel_dir):
     # --- EK 5 GLOBAL GÖRSEL ---
     # 13. Global Onarım Dağılımı (Bar)
     plt.figure(figsize=(12,8))
-    sns.barplot(x="Aykırı Değer", y="Sütun Adı", data=ozet_df.sort_values(by="Aykırı Değer"), palette="YlOrBr")
+    plot_df = ozet_df.sort_values(by="Aykırı Değer")
+    bars = sns.barplot(x="Aykırı Değer", y="Sütun Adı", data=plot_df, palette="YlOrBr")
+    for i, v in enumerate(plot_df["Aykırı Değer"]):
+        plt.text(v + 10, i, str(v), color='black', va='center', fontweight='bold')
     plt.title("Tüm Sütunlardaki Anomali Onarım Sayıları", fontsize=14)
     plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "13_global_onarım_dagilimi.png"))
@@ -77,7 +90,10 @@ def gorsel_olustur_adim9(ozet_df, gorsel_dir):
 
     # 14. Global Temizlik Oranı (Bar)
     plt.figure(figsize=(12,6))
-    plt.bar(ozet_df["Sütun Adı"], ozet_df["Değişim Oranı (%)"], color='#e67e22')
+    bars = plt.bar(ozet_df["Sütun Adı"], ozet_df["Değişim Oranı (%)"], color='#e67e22')
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 0.1, f'%{yval:.1f}', ha='center', fontweight='bold', fontsize=9)
     plt.xticks(rotation=45, ha='right')
     plt.title("Sütun Bazlı Veri Değişim Oranları (%)", fontsize=14)
     plt.tight_layout()

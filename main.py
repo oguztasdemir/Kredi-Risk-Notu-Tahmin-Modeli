@@ -9,16 +9,32 @@ try:
 except ImportError:
     base_path = os.path.dirname(os.path.abspath(__file__))
 
-def run_script(script_path):
-    """Scripti çalıştırır. Model sorma ekranında otomatik '2' (Mevcutu Kullan) seçer."""
+def run_script(script_path, current_step, total_steps):
+    """Scripti çalıştırır ve ilerleme çubuğu gösterir."""
     if not os.path.exists(script_path):
         return False
-    print(f"\n>>> İŞLENİYOR: {os.path.basename(script_path)}")
+    
+    script_name = os.path.basename(script_path)
+    percent = (current_step / total_steps) * 100
+    bar_length = 20
+    filled_length = int(bar_length * current_step // total_steps)
+    bar = '#' * filled_length + '-' * (bar_length - filled_length)
+    
+    print(f"\n[{bar}] %{percent:.1f} | ADIM {current_step}/{total_steps}")
+    print(f">>> ŞU AN ÇALIŞIYOR: {script_name}")
+    print("-" * 50)
+    
     try:
         # '2' girişi göndererek mevcut modelleri kullanmasını sağlıyoruz (Hızlı güncelleme için)
         result = subprocess.run([sys.executable, script_path], input="2\n", capture_output=False, text=True)
-        return result.returncode == 0
-    except:
+        if result.returncode == 0:
+            print(f">>> [BAŞARILI] {script_name} tamamlandı.")
+            return True
+        else:
+            print(f">>> [HATA] {script_name} çalışırken bir sorun oluştu.")
+            return False
+    except Exception as e:
+        print(f">>> [SİSTEM HATASI] {e}")
         return False
 
 def show_sub_menu(title, scripts):
@@ -35,12 +51,13 @@ def show_sub_menu(title, scripts):
         if choice == '0': return
         if choice == 'Q': sys.exit()
         if choice == 'A':
-            for s in scripts:
-                if not run_script(s): break
+            total = len(scripts)
+            for i, s in enumerate(scripts, 1):
+                if not run_script(s, i, total): break
         else:
             try:
                 idx = int(choice) - 1
-                if 0 <= idx < len(scripts): run_script(scripts[idx])
+                if 0 <= idx < len(scripts): run_script(scripts[idx], 1, 1)
             except: print("Geçersiz seçim!")
 
 def get_sorted_scripts(path):
@@ -56,8 +73,8 @@ def get_sorted_scripts(path):
 
 def main():
     p1 = os.path.join(base_path, "1_Veri_Manipülasyonu", "Python_Kodlari")
-    p2 = os.path.join(base_path, "2_Feature_Selection", "Python_Kodlari")
-    p3 = os.path.join(base_path, "3_Siniflandirma_Modelleri", "Python_Kodlari")
+    p2 = os.path.join(base_path, "2_Ozellik_Muhendisligi_ve_Secimi", "Python_Kodlari")
+    p3 = os.path.join(base_path, "3_Model_Egitimi_ve_Degerlendirme", "Python_Kodlari")
 
     phase1 = get_sorted_scripts(p1)
     phase2 = get_sorted_scripts(p2)
@@ -65,23 +82,46 @@ def main():
 
     while True:
         print("\n" + "#"*70)
-        print("   KREDİ NOTU SINIFLANDIRMA SİSTEMİ - MASTER KONTROL PANELİ (v100)")
+        print("   KREDİ NOTU SINIFLANDIRMA SİSTEMİ - MASTER KONTROL PANELİ (v2.0)")
         print("#"*70)
         print("1 - [FAZ 1] Veri Manipülasyonu ve Restorasyon")
         print("2 - [FAZ 2] Özellik Mühendisliği ve VIP Seçimi")
-        print("3 - [FAZ 3] Sınıflandırma, AI ve 50k Tahmin")
+        print("3 - [FAZ 3] AI Model Eğitimi, Hibrit Stacking ve 50k Tahmin")
         print("-" * 35)
-        print("F - [FULL PIPELINE] Tüm Projeyi Baştan Sona Çalıştır ve Güncelle")
+        print("O - [OTONOM] Seçilen Fazı Sıralı Çalıştır")
+        print("F - [FULL PIPELINE] Tüm Projeyi Baştan Sona Çalıştır (Audit Ready)")
         print("Q - SİSTEMDEN ÇIK")
         
         choice = input("\nSeçiminiz: ").strip().upper()
         if choice == '1': show_sub_menu("Veri Restorasyonu", phase1)
-        elif choice == '2': show_sub_menu("Özellik Seçimi", phase2)
-        elif choice == '3': show_sub_menu("AI ve Tahminleme", phase3)
+        elif choice == '2': show_sub_menu("Özellik Mühendisliği", phase2)
+        elif choice == '3': show_sub_menu("AI Model ve Tahminleme", phase3)
+        elif choice == 'O':
+            print("\nHangi Fazı Otonom Çalıştırmak İstiyorsunuz?")
+            print("1 - Veri Manipülasyonu")
+            print("2 - Özellik Mühendisliği")
+            print("3 - AI Model Eğitimi")
+            faz_secim = input("Seçiminiz (1/2/3): ").strip()
+            target_scripts = []
+            if faz_secim == '1': target_scripts = phase1
+            elif faz_secim == '2': target_scripts = phase2
+            elif faz_secim == '3': target_scripts = phase3
+            
+            if target_scripts:
+                print(f"\n>>> FAZ {faz_secim} OTONOM SİSTEM BAŞLATILIYOR...")
+                total = len(target_scripts)
+                for i, s in enumerate(target_scripts, 1):
+                    if not run_script(s, i, total): break
+                print(f"\n>>> FAZ {faz_secim} BAŞARIYLA TAMAMLANDI.")
+            else:
+                print("Geçersiz faz seçimi!")
+                
         elif choice == 'F':
-            for scripts in [phase1, phase2, phase3]:
-                for s in scripts:
-                    if not run_script(s): break
+            print("\n>>> FULL PIPELINE BAŞLATILIYOR (Lütfen Bekleyin)...")
+            all_scripts = phase1 + phase2 + phase3
+            total = len(all_scripts)
+            for i, s in enumerate(all_scripts, 1):
+                if not run_script(s, i, total): break
         elif choice == 'Q': break
 
 if __name__ == "__main__":
