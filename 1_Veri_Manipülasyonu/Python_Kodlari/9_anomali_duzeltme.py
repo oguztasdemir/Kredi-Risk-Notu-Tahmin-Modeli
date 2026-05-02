@@ -36,133 +36,88 @@ def parse_age(val):
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def gorsel_olustur_adim9(ozet_df, gorsel_dir):
-    print("\n> Çocuk Dostu Görseller Hazırlanıyor (Adım 9)...")
+def gorsel_olustur_adim10(report_df, gorsel_dir):
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 10)...")
     if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
-    plt.style.use('seaborn-v0_8-pastel')
     
-    # 1. Onarım Özeti (Donut)
-    plt.figure(figsize=(8,8))
+    # Akademik Stil
+    plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    fig = plt.figure(figsize=(18, 12))
+    gs = fig.add_gridspec(2, 2)
+
+    # 10.1 Kalite Puanları (Barh)
+    ax1 = fig.add_subplot(gs[0, 0])
+    plot_df = report_df.sort_values(by="Kalite Puanı", ascending=True)
+    sns.barplot(x="Kalite Puanı", y="Sütun Adı", data=plot_df, palette="viridis", ax=ax1)
+    ax1.set_title("Şekil 10.1: Özellik Bazlı Veri Kalite Endeksi")
+    ax1.set_xlim(0, 110)
+
+    # 10.2 Durum Dağılımı (Donut)
+    ax2 = fig.add_subplot(gs[0, 1])
+    hazir = len(report_df[report_df["Durum"].str.contains("HAZIR")])
+    kritik = len(report_df) - hazir
+    ax2.pie([hazir, kritik], labels=['Model Hazır', 'Ek Denetim Gerekli'], 
+            autopct='%1.1f%%', colors=['#27ae60', '#c0392b'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
+    ax2.set_title("Şekil 10.2: Modelleme Öncesi Veri Hazırlık Durumu")
+
+    # 10.3 Kalite Matrisi (Table)
+    ax3 = fig.add_subplot(gs[1, :])
+    ax3.axis('off')
+    tab_df = report_df.sort_values(by="Kalite Puanı", ascending=False).head(15)
+    table_data = [["Özellik", "Doluluk (%)", "Kalite Puanı", "Durum"]] + tab_df[["Sütun Adı", "Doluluk/Sağlık (%)", "Kalite Puanı", "Durum"]].values.tolist()
+    tab = ax3.table(cellText=table_data, loc='center', cellLoc='center')
+    tab.auto_set_font_size(False); tab.set_fontsize(10); tab.scale(1, 1.8)
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
+        else: cell.set_facecolor('#f8f9fa')
+    ax3.set_title("Tablo 10.1: Forensic Intelligence Audit - Detaylı Kalite Raporu", pad=20)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "Adim_10_Kalite_Panel.png"))
+    plt.close()
+    print(f"Görseller kaydedildi: {gorsel_dir}")
+
+def gorsel_olustur_adim9(ozet_df, gorsel_dir):
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 9)...")
+    if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
+    
+    # Akademik Stil
+    plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    
+    fig = plt.figure(figsize=(18, 12))
+    gs = fig.add_gridspec(2, 2)
+
+    # 9.1 Anomali Onarım Dağılımı (Barh)
+    ax1 = fig.add_subplot(gs[0, 0])
+    plot_df = ozet_df.sort_values(by="Aykırı Değer", ascending=True).tail(10)
+    sns.barplot(x="Aykırı Değer", y="Sütun Adı", data=plot_df, palette="Oranges_r", ax=ax1)
+    ax1.set_title("Şekil 9.1: En Çok Anomali Onarımı Yapılan 10 Değişken")
+
+    # 9.2 Genel Onarım (Donut)
+    ax2 = fig.add_subplot(gs[0, 1])
     onarılan = ozet_df["Aykırı Değer"].sum()
     saglam = ozet_df["Sağlam Değer"].sum()
-    plt.pie([saglam, onarılan], labels=['Sağlam Veri', 'Onarılan Anomali'], autopct='%1.1f%%', colors=['#2ecc71', '#f39c12'], startangle=90, wedgeprops={'width':0.4})
-    plt.title("Final Anomali Onarımı Başarısı", fontsize=14, fontweight='bold')
+    ax2.pie([saglam, onarılan], labels=['Tutarlı Veri', 'Onarılan Anomali'], 
+            autopct='%1.1f%%', colors=['#27ae60', '#e67e22'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
+    ax2.set_title("Şekil 9.2: Veri Seti Genel Anomali Temizlik Oranı")
+
+    # 9.3 Onarım Detay Tablosu
+    ax3 = fig.add_subplot(gs[1, :])
+    ax3.axis('off')
+    # Önemli olanları gösterelim
+    tab_df = ozet_df.sort_values(by="Aykırı Değer", ascending=False).head(10)
+    table_data = [["Özellik", "Onarılan Adet", "Değişim Oranı (%)"]] + tab_df[["Sütun Adı", "Aykırı Değer", "Değişim Oranı (%)"]].values.tolist()
+    tab = ax3.table(cellText=table_data, loc='center', cellLoc='center')
+    tab.auto_set_font_size(False); tab.set_fontsize(11); tab.scale(1, 2)
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
+        else: cell.set_facecolor('#f8f9fa')
+    ax3.set_title("Tablo 9.1: Sütun Bazlı Final Anomali Denetim İstatistikleri", pad=20)
+
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "1_final_onarım_donut.png"))
+    plt.savefig(os.path.join(gorsel_dir, "Adim_9_Anomali_Panel.png"))
     plt.close()
-
-    # 2. Anomali Onarım Dashboard (Tüm Sütunlar)
-    print("> Anomali Onarım Dashboard Hazırlanıyor...")
-    # Sütun sayısına göre satır/sütun sayısını hesapla
-    n_cols_data = len(ozet_df)
-    n_rows = (n_cols_data // 5) + (1 if n_cols_data % 5 != 0 else 0)
-    fig, axes = plt.subplots(n_rows, 5, figsize=(20, 5 * n_rows))
-    axes = axes.flatten()
-    
-    for i, row in enumerate(ozet_df.sort_values(by="Aykırı Değer", ascending=False).itertuples()):
-        bars = axes[i].bar(['Onarılan Hata'], [row._5], color='#e67e22')
-        for bar in bars:
-            h = bar.get_height()
-            axes[i].text(bar.get_x() + bar.get_width()/2, h + 1, str(int(h)), ha='center', fontweight='bold', fontsize=10)
-        axes[i].set_title(f"{row._1}", fontsize=10, fontweight='bold')
-        
-    # Boş kalan kareleri temizle
-    for j in range(len(ozet_df), len(axes)):
-        fig.delaxes(axes[j])
-        
-    plt.suptitle("TÜM SÜTUNLAR İÇİN ANOMALİ ONARIM DASHBOARD", fontsize=16, fontweight='bold', y=1.02)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "2_anomali_onarım_dashboard.png"), dpi=300)
-    plt.close()
-
-
-    # --- EK 5 GLOBAL GÖRSEL ---
-    # 13. Global Onarım Dağılımı (Bar)
-    plt.figure(figsize=(12,8))
-    plot_df = ozet_df.sort_values(by="Aykırı Değer")
-    bars = sns.barplot(x="Aykırı Değer", y="Sütun Adı", data=plot_df, palette="YlOrBr")
-    for i, v in enumerate(plot_df["Aykırı Değer"]):
-        plt.text(v + 10, i, str(v), color='black', va='center', fontweight='bold')
-    plt.title("Tüm Sütunlardaki Anomali Onarım Sayıları", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "13_global_onarım_dagilimi.png"))
-    plt.close()
-
-    # 14. Global Temizlik Oranı (Bar)
-    plt.figure(figsize=(12,6))
-    bars = plt.bar(ozet_df["Sütun Adı"], ozet_df["Değişim Oranı (%)"], color='#e67e22')
-    for bar in bars:
-        yval = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2, yval + 0.1, f'%{yval:.1f}', ha='center', fontweight='bold', fontsize=9)
-    plt.xticks(rotation=45, ha='right')
-    plt.title("Sütun Bazlı Veri Değişim Oranları (%)", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "14_global_degisim_oranlari.png"))
-    plt.close()
-
-    # 15. Global Onarım Isı Haritası (Heatmap)
-    plt.figure(figsize=(10,6))
-    pivot_data = ozet_df.set_index("Sütun Adı")[["Aykırı Değer"]]
-    sns.heatmap(pivot_data, annot=True, fmt="g", cmap="Oranges")
-    plt.title("Anomali Onarım Yoğunluk Matrisi", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "15_global_onarım_heatmap.png"))
-    plt.close()
-
-    plt.savefig(os.path.join(gorsel_dir, "16_global_saglik_profili.png"))
-    plt.close()
-
-    # 17. Anomali Onarım Forensik Paneli (Kapsamlı Before-After)
-    print("> Anomali Onarım Forensik Paneli Hazırlanıyor...")
-    try:
-        # Karşılaştırma için en çok hata düzeltilen sütunları seçelim
-        target_cols = ["ID", "Ay", "Yaş", "Meslek", "Banka Hesabı Sayısı", "Kredi Sayısı", "Ödeme Gecikme Günü"]
-        
-        # Orijinal veriden (Adım 3'teki ham birleştirilmiş) hatalı bir kesit alalım
-        # Not: Gerçek hatalı verileri bulmak için manuel filtreleme simülasyonu yapıyoruz
-        df_before = pd.read_excel(original_file, nrows=2000)[target_cols]
-        # Tip dönüşümü (Kıyaslama için sayısal yapalım)
-        df_before["Yaş"] = pd.to_numeric(df_before["Yaş"], errors='coerce')
-        df_before["Banka Hesabı Sayısı"] = pd.to_numeric(df_before["Banka Hesabı Sayısı"], errors='coerce')
-        # Hatalı olanlardan bir örneklem (Örn: Yaş > 80 olanlar veya Banka Hesabı > 50 olanlar)
-        anomalies = df_before[(df_before["Yaş"] > 80) | (df_before["Banka Hesabı Sayısı"] > 50)].head(5)
-        
-        # Onarılmış veriden aynı kişileri (ID üzerinden) bulalım
-        df_after = pd.read_excel(output_file)[target_cols]
-        restored = df_after[df_after["ID"].isin(anomalies["ID"])]
-        
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 8))
-        ax1.axis('off')
-        ax2.axis('off')
-        
-        # Before (Anomali)
-        t1 = ax1.table(cellText=anomalies.values, colLabels=anomalies.columns, loc='center', cellLoc='left')
-        t1.auto_set_font_size(False); t1.set_fontsize(9)
-        t1.scale(1, 2)
-        ax1.set_title("ADIM 9: ÖNCE (ANOMALİ - HATALI VERİ GİRİŞLERİ)", fontsize=14, fontweight='bold', color='#e67e22', pad=20)
-        
-        # After (Onarılmış)
-        t2 = ax2.table(cellText=restored.values, colLabels=restored.columns, loc='center', cellLoc='left')
-        t2.auto_set_font_size(False); t2.set_fontsize(9)
-        t2.scale(1, 2)
-        ax2.set_title("ADIM 9: SONRA (RESTORASYON - MEDİAN/PATTERN ONARIMI)", fontsize=14, fontweight='bold', color='#27ae60', pad=20)
-        
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, "17_anomali_forensik_panel.png"), dpi=300)
-        plt.close()
-    except Exception as e:
-        print(f"Uyarı: Anomali Forensik Paneli oluşturulamadı: {e}")
-
-    # 17. Final Kalite Notu (Bar)
-    plt.figure(figsize=(10,6))
-    success_rate = (1 - (ozet_df["Aykırı Değer"].sum() / ozet_df["Toplam Değer"].sum())) * 100
-    plt.bar(['Final Veri Kalitesi'], [success_rate], color='#27ae60')
-    plt.ylim(0, 100)
-    plt.text(0, success_rate/2, f"%{success_rate:.2f}", ha='center', fontsize=30, color='white', fontweight='bold')
-    plt.title("Adım 9 Sonrası Global Veri Kalitesi", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "17_global_kalite_notu.png"))
-    plt.close()
+    print(f"Görseller kaydedildi: {gorsel_dir}")
 
 def anomali_duzeltme_adim9_v2():
     print("\n" + "="*50)

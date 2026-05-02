@@ -75,94 +75,46 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def gorsel_olustur_adim8(ozet_df, gorsel_dir):
-    print("\n> Çocuk Dostu Görseller Hazırlanıyor (Adım 8)...")
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 8)...")
     if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
-    plt.style.use('seaborn-v0_8-pastel')
     
-    # 1. Genel Başarı (Donut)
-    plt.figure(figsize=(8,8))
+    # Akademik Stil
+    plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    
+    fig = plt.figure(figsize=(18, 12))
+    gs = fig.add_gridspec(2, 2)
+
+    # 8.1 Genel Başarı (Donut)
+    ax1 = fig.add_subplot(gs[0, 0])
     tik = ozet_df["Tik (✓) Sayısı"].sum()
     carpi = ozet_df["Çarpı (X) Sayısı"].sum()
-    plt.pie([tik, carpi], labels=['Hatasıza Yakın', 'Hala Bozuk'], autopct='%1.1f%%', colors=['#2ecc71', '#e74c3c'], startangle=90, wedgeprops={'width':0.4})
-    plt.title("Denetim Sonucunda Verilerimiz Ne Durumda?", fontsize=14, fontweight='bold')
+    ax1.pie([tik, carpi], labels=['Denetimden Geçen', 'Anomali Saptanan'], 
+            autopct='%1.1f%%', colors=['#27ae60', '#c0392b'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
+    ax1.set_title("Şekil 8.1: Finansal Veri Kümesi Global Uyumluluk Oranı")
+
+    # 8.2 Başarı Oranları (Barh)
+    ax2 = fig.add_subplot(gs[0, 1])
+    plot_df = ozet_df.sort_values(by="Başarı Oranı (%)", ascending=True)
+    sns.barplot(x="Başarı Oranı (%)", y="Sütun Adı", data=plot_df, palette="mako", ax=ax2)
+    ax2.set_title("Şekil 8.2: Parametre Bazlı Denetim Geçerlilik Skorları")
+    ax2.set_xlim(0, 110)
+
+    # 8.3 Denetim Karnesi Tablosu
+    ax3 = fig.add_subplot(gs[1, :])
+    ax3.axis('off')
+    tab_df = ozet_df.sort_values(by="Başarı Oranı (%)", ascending=False).head(12)
+    table_data = [["Finansal Parametre", "Geçen (✓)", "Kalan (X)", "Başarı Oranı (%)"]] + tab_df[["Sütun Adı", "Tik (✓) Sayısı", "Çarpı (X) Sayısı", "Başarı Oranı (%)"]].values.tolist()
+    tab = ax3.table(cellText=table_data, loc='center', cellLoc='center')
+    tab.auto_set_font_size(False); tab.set_fontsize(10); tab.scale(1, 1.8)
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
+        else: cell.set_facecolor('#f8f9fa')
+    ax3.set_title("Tablo 8.1: Forensic Cluster Analysis (FCA) - Detaylı Denetim Karnesi", pad=20)
+
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "1_denetim_basari_donut.png"))
+    plt.savefig(os.path.join(gorsel_dir, "Adim_8_Konsolide_Rapor.png"))
     plt.close()
-
-    # 2. Finansal Denetim Dashboard (Kapsamlı Birleştirme)
-    print("> Denetim Dashboard Hazırlanıyor...")
-    fig, axes = plt.subplots(2, 5, figsize=(20, 10))
-    axes = axes.flatten()
-    
-    for i, row in enumerate(ozet_df.head(10).itertuples()):
-        bars = axes[i].barh(['Geçti (✓)', 'Kaldı (X)'], [row._2, row._3], color=['#27ae60', '#c0392b'])
-        for bar in bars:
-            w = bar.get_width()
-            axes[i].text(w + 5, bar.get_y() + bar.get_height()/2, str(w), va='center', fontsize=8, fontweight='bold')
-        axes[i].set_title(f"{row._1} Karnesi", fontsize=10, fontweight='bold')
-        
-    plt.suptitle("FİNANSAL TUTARLILIK DENETİM VE GEÇERLİLİK DASHBOARD", fontsize=16, fontweight='bold', y=1.02)
-    
-    # Metodoloji Notu
-    fig.text(0.5, 0.01, "Denetim Metodu: Forensic Cluster Analysis (FCA) - Zaman Serisi Tutarlılık Kontrolü", 
-             ha='center', fontsize=10, bbox=dict(facecolor='white', alpha=0.5, boxstyle='round'))
-
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.savefig(os.path.join(gorsel_dir, "2_denetim_karneleri_dashboard.png"), dpi=300)
-    plt.close()
-
-
-    # --- EK 5 GLOBAL GÖRSEL ---
-    # 13. Global Başarı Oranları (Bar)
-    plt.figure(figsize=(12,8))
-    plot_df = ozet_df.sort_values(by="Başarı Oranı (%)")
-    bars = sns.barplot(x="Başarı Oranı (%)", y="Sütun Adı", data=plot_df, palette="coolwarm")
-    for i, v in enumerate(plot_df["Başarı Oranı (%)"]):
-        plt.text(v + 0.5, i, f'%{v:.1f}', color='black', va='center', fontweight='bold')
-    plt.title("Tüm Sütunların Denetim Geçme Oranları", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "13_global_basari_oranlari.png"))
-    plt.close()
-
-    # 14. Global Çarpı (X) Dağılımı (Pie)
-    plt.figure(figsize=(8,8))
-    top_errors = ozet_df.sort_values(by="Çarpı (X) Sayısı", ascending=False).head(5)
-    plt.pie(top_errors["Çarpı (X) Sayısı"], labels=top_errors["Sütun Adı"], autopct='%1.1f%%', colors=sns.color_palette("Reds_r"))
-    plt.title("En Çok Hata Veren 5 Sütun", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "14_global_hata_dagilimi.png"))
-    plt.close()
-
-    # 15. Global Denetim Isı Haritası (Heatmap)
-    plt.figure(figsize=(10,6))
-    pivot_data = ozet_df.set_index("Sütun Adı")[["Başarı Oranı (%)"]]
-    sns.heatmap(pivot_data, annot=True, cmap="YlGn")
-    plt.title("Finansal Parametreler Denetim Matrisi", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "15_global_denetim_heatmap.png"))
-    plt.close()
-
-    # 16. Global Benzersiz Değer Dengesi (Line)
-    plt.figure(figsize=(12,6))
-    plt.plot(ozet_df["Sütun Adı"], ozet_df["Tik (✓) Sayısı"], marker='s', color='#3498db', label='Sağlam')
-    plt.plot(ozet_df["Sütun Adı"], ozet_df["Çarpı (X) Sayısı"], marker='x', color='#e74c3c', label='Hatalı')
-    plt.xticks(rotation=45, ha='right')
-    plt.legend()
-    plt.title("Sütun Bazlı Denetim Trendi", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "16_global_denetim_trendi.png"))
-    plt.close()
-
-    # 17. Global Başarı Karnesi (Bar)
-    plt.figure(figsize=(10,6))
-    avg_success = ozet_df["Başarı Oranı (%)"].mean()
-    plt.bar(['Tüm Veri Seti'], [avg_success], color='#2ecc71')
-    plt.ylim(0, 100)
-    plt.text(0, avg_success/2, f"%{avg_success:.1f}", ha='center', fontsize=30, color='white', fontweight='bold')
-    plt.title("Global Veri Tutarlılık Skoru", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "17_global_basari_karnesi.png"))
-    plt.close()
+    print(f"Görseller kaydedildi: {gorsel_dir}")
 
 def akilli_finansal_denetim_v9():
     print("\n" + "="*50)

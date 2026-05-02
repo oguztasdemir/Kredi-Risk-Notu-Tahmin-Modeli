@@ -70,47 +70,56 @@ def birlestir_ve_sirala():
     print(f"Birleşik dosya kaydediliyor: {output_yolu}")
     birlesik_df.to_excel(output_yolu, index=False)
     
-    # --- GÖRSELLEŞTİRMELER ---
-    print("Pedagojik görseller oluşturuluyor...")
-    sns.set_style("whitegrid")
-    
-    # Görsel 1: Ay Bazlı Kayıt Sayısı (Bar Chart)
-    plt.figure(figsize=(14, 7))
+    # --- AKADEMİK GÖRSELLEŞTİRME PANELİ ---
+    print("Akademik analiz raporu oluşturuluyor...")
+    plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    fig = plt.figure(figsize=(16, 12))
+    gs = fig.add_gridspec(2, 2)
+
+    # 1. Ay Bazlı Dağılım (Line + Bar Hybrid)
+    ax1 = fig.add_subplot(gs[0, 0])
     ay_counts = birlesik_df['Ay'].value_counts().reindex(ay_sirasi.keys())
-    ax1 = sns.barplot(x=ay_counts.index, y=ay_counts.values, palette="coolwarm", hue=ay_counts.index, legend=False)
-    autolabel(ax1.patches, ax1)
-    plt.title('Birleşik Veri Seti: Aylık Kayıt Dağılımı', fontsize=16, pad=20)
-    plt.xlabel('Aylar', fontsize=12)
-    plt.ylabel('Kayıt Sayısı', fontsize=12)
-    plt.ylim(0, ay_counts.max() * 1.15) # Tepe değerlerin sığması için pay bırak
-    plt.xticks(rotation=0) # Yatay metinler
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "1_aylik_dagilim.png"), dpi=150)
-    plt.close()
+    sns.barplot(x=ay_counts.index, y=ay_counts.values, palette="Blues_d", ax=ax1, hue=ay_counts.index, legend=False)
+    ax1.plot(range(len(ay_counts)), ay_counts.values, color='#c0392b', marker='o', linewidth=2, label='Trend')
+    ax1.set_title("Şekil 3.1: Kronolojik Veri Yoğunluğu (Aylık)")
+    ax1.set_xticklabels(ay_counts.index, rotation=45)
 
-    # Görsel 2: Kredi Skoru Dağılımı (Donut Chart)
-    plt.figure(figsize=(10, 7))
+    # 2. Kredi Skoru (Donut)
+    ax2 = fig.add_subplot(gs[0, 1])
     skor_counts = birlesik_df['Kredi Skoru'].value_counts()
-    plt.pie(skor_counts, labels=skor_counts.index, autopct='%1.1f%%', startangle=140, 
-            colors=sns.color_palette("pastel"), wedgeprops={'width': 0.4})
-    plt.title('Genel Kredi Skoru Dağılımı', fontsize=16)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "2_kredi_skoru_donut.png"), dpi=150)
-    plt.close()
+    ax2.pie(skor_counts, labels=skor_counts.index, autopct='%1.1f%%', startangle=140, 
+            colors=['#27ae60', '#f1c40f', '#e67e22'], wedgeprops={'width': 0.4, 'edgecolor': 'white'})
+    ax2.set_title("Şekil 3.2: Hedef Etiket (Kredi Skoru) Dağılımı")
 
-    # Görsel 3: Müşteri Başına Veri Devamlılığı (Pedagojik Histogram)
-    plt.figure(figsize=(12, 6))
+    # 3. Veri Devamlılığı (Histogram)
+    ax3 = fig.add_subplot(gs[1, 0])
     musteri_ay_sayisi = birlesik_df.groupby('Müşteri ID')['Ay'].count()
-    ax3 = sns.histplot(musteri_ay_sayisi, bins=range(1, 14), color='skyblue', kde=False)
-    plt.title('Veri Devamlılığı: Her Müşteri İçin Kaç Aylık Veri Var?', fontsize=16)
-    plt.xlabel('Toplam Ay Sayısı', fontsize=12)
-    plt.ylabel('Müşteri Sayısı', fontsize=12)
-    plt.xticks(range(1, 13))
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "3_veri_devamliligi.png"), dpi=150)
-    plt.close()
+    sns.histplot(musteri_ay_sayisi, bins=range(1, 14), color='#2980b9', ax=ax3, kde=True)
+    ax3.set_title("Şekil 3.3: Müşteri Başına Veri Devamlılığı")
+    ax3.set_xlabel("Takip Edilen Ay Sayısı")
 
-    print("Tüm görseller başarıyla oluşturuldu.")
+    # 4. Veri Seti İstatistik Tablosu
+    ax4 = fig.add_subplot(gs[1, 1])
+    ax4.axis('off')
+    stats_data = [
+        ["Parametre", "Değer"],
+        ["Toplam Gözlem", len(birlesik_df)],
+        ["Eğitim Payı", f"{(len(egitim)/len(birlesik_df))*100:.1f}%"],
+        ["Test Payı", f"{(len(test)/len(birlesik_df))*100:.1f}%"],
+        ["Eşsiz Müşteri", musteri_ay_sayisi.nunique()],
+        ["Ortalama Kayıt/Müşteri", f"{musteri_ay_sayisi.mean():.2f}"]
+    ]
+    tab = ax4.table(cellText=stats_data, loc='center', cellLoc='center', colWidths=[0.5, 0.4])
+    tab.auto_set_font_size(False); tab.set_fontsize(11); tab.scale(1, 2.5)
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white', fontweight='bold')
+        else: cell.set_facecolor('#f8f9fa')
+    ax4.set_title("Tablo 3.1: Birleşik Veri Seti Deskriptif İstatistikleri")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "Adim_3_Konsolide_Rapor.png"))
+    plt.close()
+    print("Analiz raporu başarıyla oluşturuldu.")
 
 if __name__ == "__main__":
     birlestir_ve_sirala()

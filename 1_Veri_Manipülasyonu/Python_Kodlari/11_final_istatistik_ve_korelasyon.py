@@ -26,106 +26,74 @@ if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
 output_file = os.path.join(output_dir, "final_istatistik_ve_korelasyon_raporu.xlsx")
 
 def gorsel_olustur_adim11(df, corr_matrix, stats_df):
-    print("\n> Çocuk Dostu Görseller Hazırlanıyor (Adım 11)...")
-    plt.style.use('seaborn-v0_8-pastel')
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 11)...")
+    if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
     
-    # 1. Global Korelasyon Isı Haritası
-    plt.figure(figsize=(16, 12))
-    sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap="RdYlGn", center=0, linewidths=0.5)
-    plt.title("Tüm Verilerin Birbirleriyle Olan Arkadaşlık Derecesi (Korelasyon)", fontsize=16, fontweight='bold')
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "1_global_korelasyon_heatmap.png"))
-    plt.close()
+    # Akademik Stil
+    plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    
+    # PANEL 1: KORELASYON VE GENEL YAPI
+    fig1 = plt.figure(figsize=(18, 14))
+    gs1 = fig1.add_gridspec(2, 2)
 
-    # 2. Meslek Dağılımı (Bar)
-    plt.figure(figsize=(12,8))
-    m_counts = df["Meslek"].value_counts()
-    bars = sns.barplot(x=m_counts.values, y=m_counts.index, palette="viridis")
-    for i, v in enumerate(m_counts.values):
-        plt.text(v + 10, i, str(v), color='black', va='center', fontweight='bold', fontsize=10)
-    plt.title("Müşteri Meslek Dağılımı", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "02_meslek_dagilimi.png"))
-    plt.close()
+    # 11.1 Korelasyon (Heatmap)
+    ax1 = fig1.add_subplot(gs1[:, 0])
+    sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap="RdYlGn", center=0, ax=ax1, cbar_kws={'shrink': .8})
+    ax1.set_title("Şekil 11.1: Özellikler Arası Global Korelasyon Matrisi")
 
-    # 3. Kredi Türü Dağılımı (Bar)
-    plt.figure(figsize=(12,6))
-    k_counts = df["Kredi Türü"].value_counts()
-    bars = sns.barplot(x=k_counts.values, y=k_counts.index, palette="magma")
-    for i, v in enumerate(k_counts.values):
-        plt.text(v + 10, i, str(v), color='black', va='center', fontweight='bold', fontsize=10)
-    plt.title("Müşteri Kredi Türü Dağılımı", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "03_kredi_turu_dagilimi.png"))
-    plt.close()
+    # 11.2 Veri Çeşitliliği (Donut)
+    ax2 = fig1.add_subplot(gs1[0, 1])
+    uniques = df.nunique().sort_values().tail(10)
+    ax2.pie(uniques, labels=uniques.index, autopct='%1.1f%%', startangle=140, wedgeprops={'width':0.4, 'edgecolor': 'white'})
+    ax2.set_title("Şekil 11.2: En Yüksek Varyanslı 10 Özellik (Benzersiz Değer Payı)")
 
-    # 4. Ödeme Davranışı (Bar)
-    plt.figure(figsize=(12,6))
-    o_counts = df["Ödeme Davranışı"].value_counts()
-    bars = sns.barplot(x=o_counts.values, y=o_counts.index, palette="cubehelix")
-    for i, v in enumerate(o_counts.values):
-        plt.text(v + 10, i, str(v), color='black', va='center', fontweight='bold', fontsize=10)
-    plt.title("Ödeme Davranışı Dağılımı", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "04_odeme_davranisi_dagilimi.png"))
-    plt.close()
-
-    # 5. Ortalama Değerler Tablosu (Görsel)
-    plt.figure(figsize=(12, 6))
-    numeric_stats = stats_df.apply(pd.to_numeric, errors='coerce').dropna(how='all')
-    if "mean" in numeric_stats.index:
-        means = numeric_stats.loc["mean"].dropna().sort_values()
-        bars = plt.barh(means.index, means.values, color='skyblue')
-        for bar in bars:
-            plt.text(bar.get_width() + 0.1, bar.get_y() + bar.get_height()/2, f'{bar.get_width():.1f}', va='center', fontweight='bold')
-        plt.title("Sütunların Ortalama Büyüklükleri", fontsize=14)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, "5_ortalama_degerler_bar.png"))
-    plt.close()
-
-    # 6. Standart Sapma (Veri Hareketliliği)
-    plt.figure(figsize=(12, 6))
-    if "std" in numeric_stats.index:
-        stds = numeric_stats.loc["std"].dropna().sort_values()
-        plt.barh(stds.index, stds.values, color='salmon')
-        plt.title("Hangi Veri Daha Çok Kıpır Kıpır? (Standart Sapma)", fontsize=14)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, "6_standart_sapma_hareketlilik.png"))
-    plt.close()
-
-    # 7. Veri Çeşitliliği (Unique Values)
-    plt.figure(figsize=(10, 10))
-    uniques = df.nunique().sort_values()
-    plt.pie(uniques, labels=uniques.index, autopct='%1.1f%%', startangle=140)
-    plt.title("Verilerimizin Çeşitlilik Karnesi", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "7_veri_cesitliligi_donut.png"))
-    plt.close()
-
-    # 8. Skewness (Eğrilik) Analizi
-    plt.figure(figsize=(12, 6))
-    skewness = df[num_cols].skew().sort_values()
-    colors = ['red' if abs(x) > 1 else 'green' for x in skewness.values]
-    bars = plt.bar(skewness.index, skewness.values, color=colors)
-    for bar in bars:
-        yval = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2, yval + (0.02 if yval > 0 else -0.1), f'{yval:.2f}', ha='center', fontsize=8, fontweight='bold')
-    plt.xticks(rotation=45, ha='right')
-    plt.axhline(y=0, color='black', linestyle='-')
-    plt.title("Veri Dengesi: Gülen ve Üzülen Sütunlar (Skewness)", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "8_egrilik_analizi_skewness.png"))
-    plt.close()
-
-
-    # 10. Hedef Değişken (Kredi Skoru) Dağılımı
+    # 11.3 Kredi Skoru Final Dağılım (Count)
+    ax3 = fig1.add_subplot(gs1[1, 1])
     if "Kredi Skoru" in df.columns:
-        plt.figure(figsize=(10, 6))
-        sns.countplot(x="Kredi Skoru", data=df, palette="viridis")
-        plt.title("Final Veri Setinde Kredi Skoru Dağılımı", fontsize=14)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, "10_kredi_skoru_final_dagilim.png"))
-        plt.close()
+        sns.countplot(x="Kredi Skoru", data=df, palette="viridis", ax=ax3)
+        ax3.set_title("Şekil 11.3: Hedef Etiket (Kredi Skoru) Final Dağılımı")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "Adim_11_Panel_1_Korelasyon.png"))
+    plt.close()
+
+    # PANEL 2: İSTATİSTİKSEL DAĞILIM VE SKEWNESS
+    fig2 = plt.figure(figsize=(18, 12))
+    gs2 = fig2.add_gridspec(2, 2)
+
+    # 11.4 Meslek Dağılımı (Barh)
+    ax4 = fig2.add_subplot(gs2[0, 0])
+    m_counts = df["Meslek"].value_counts().head(10)
+    sns.barplot(x=m_counts.values, y=m_counts.index, palette="mako", ax=ax4)
+    ax4.set_title("Şekil 11.4: Müşteri Portföyü Meslek Dağılımı (Top 10)")
+
+    # 11.5 Skewness Analizi
+    ax5 = fig2.add_subplot(gs2[0, 1])
+    num_cols = df.select_dtypes(include=[np.number]).columns
+    skewness = df[num_cols].skew().sort_values()
+    colors = ['#e74c3c' if abs(x) > 1 else '#27ae60' for x in skewness.values]
+    ax5.bar(skewness.index, skewness.values, color=colors)
+    ax5.set_xticklabels(ax5.get_xticklabels(), rotation=90)
+    ax5.axhline(y=0, color='black', linewidth=0.8)
+    ax5.set_title("Şekil 11.5: Veri Eğriliği (Skewness) ve Normal Dağılım Uyumluluğu")
+
+    # 11.6 Tanımlayıcı İstatistikler (Table)
+    ax6 = fig2.add_subplot(gs2[1, :])
+    ax6.axis('off')
+    stats_data = [["Metrik"] + list(num_cols[:5])] # Sadece ilk 5 sütun sığar
+    for idx in ['mean', 'std', 'min', 'max']:
+        stats_data.append([idx.upper()] + [f"{df[c].describe()[idx]:.2f}" for c in num_cols[:5]])
+    tab = ax6.table(cellText=stats_data, loc='center', cellLoc='center')
+    tab.auto_set_font_size(False); tab.set_fontsize(11); tab.scale(1, 3)
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
+        else: cell.set_facecolor('#f8f9fa')
+    ax6.set_title("Tablo 11.1: Kritik Finansal Değişkenler Deskriptif İstatistikleri", pad=20)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "Adim_11_Panel_2_Istatistik.png"))
+    plt.close()
+    print(f"Görseller kaydedildi: {gorsel_dir}")
 
 def istatistik_ve_korelasyon_adim11():
     print("\n" + "="*50)

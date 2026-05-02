@@ -26,83 +26,45 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def gorsel_olustur_adim10(report_df, gorsel_dir):
-    print("\n> Çocuk Dostu Görseller Hazırlanıyor (Adım 10)...")
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 10)...")
     if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
-    plt.style.use('seaborn-v0_8-pastel')
     
-    # 1. Hazır vs Kritik (Pie)
-    plt.figure(figsize=(8,8))
+    # Akademik Stil
+    plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    fig = plt.figure(figsize=(18, 12))
+    gs = fig.add_gridspec(2, 2)
+
+    # 10.1 Kalite Puanları (Barh)
+    ax1 = fig.add_subplot(gs[0, 0])
+    plot_df = report_df.sort_values(by="Kalite Puanı", ascending=True)
+    sns.barplot(x="Kalite Puanı", y="Sütun Adı", data=plot_df, palette="viridis", ax=ax1)
+    ax1.set_title("Şekil 10.1: Özellik Bazlı Veri Kalite Endeksi")
+    ax1.set_xlim(0, 110)
+
+    # 10.2 Durum Dağılımı (Donut)
+    ax2 = fig.add_subplot(gs[0, 1])
     hazir = len(report_df[report_df["Durum"].str.contains("HAZIR")])
     kritik = len(report_df) - hazir
-    plt.pie([hazir, kritik], labels=['Hazır', 'Düzeltilmeli'], autopct='%1.1f%%', colors=['#2ecc71', '#e74c3c'], startangle=90)
-    plt.title("Verilerimiz Modelleme İçin Hazır mı?", fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "1_hazirlik_ozeti_pie.png"))
-    plt.close()
+    ax2.pie([hazir, kritik], labels=['Model Hazır', 'Ek Denetim Gerekli'], 
+            autopct='%1.1f%%', colors=['#27ae60', '#c0392b'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
+    ax2.set_title("Şekil 10.2: Modelleme Öncesi Veri Hazırlık Durumu")
 
-    # 2. Global Kalite Puanları (Bar)
-    plt.figure(figsize=(12,10))
-    plot_df = report_df.sort_values(by="Kalite Puanı", ascending=False)
-    bars = sns.barplot(x="Kalite Puanı", y="Sütun Adı", data=plot_df, palette="viridis")
-    for i, v in enumerate(plot_df["Kalite Puanı"]):
-        plt.text(v + 1, i, f'{v:.1f}', color='black', va='center', fontweight='bold', fontsize=10)
-    plt.title("Tüm Sütunlar İçin Veri Kalite Karnesi", fontsize=15, fontweight='bold')
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "2_global_kalite_bar.png"))
-    plt.close()
+    # 10.3 Kalite Matrisi (Table)
+    ax3 = fig.add_subplot(gs[1, :])
+    ax3.axis('off')
+    tab_df = report_df.sort_values(by="Kalite Puanı", ascending=False).head(15)
+    table_data = [["Özellik", "Doluluk (%)", "Kalite Puanı", "Durum"]] + tab_df[["Sütun Adı", "Doluluk/Sağlık (%)", "Kalite Puanı", "Durum"]].values.tolist()
+    tab = ax3.table(cellText=table_data, loc='center', cellLoc='center')
+    tab.auto_set_font_size(False); tab.set_fontsize(10); tab.scale(1, 1.8)
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
+        else: cell.set_facecolor('#f8f9fa')
+    ax3.set_title("Tablo 10.1: Forensic Intelligence Audit - Detaylı Kalite Raporu", pad=20)
 
-    # --- EK 5 GLOBAL GÖRSEL ---
-    # 13. Global ML Hazırlık Skorları (Bar)
-    plt.figure(figsize=(12,10))
-    plot_df_ml = report_df.sort_values(by="Doluluk/Sağlık (%)")
-    bars = sns.barplot(x="Doluluk/Sağlık (%)", y="Sütun Adı", data=plot_df_ml, palette="magma")
-    for i, v in enumerate(plot_df_ml["Doluluk/Sağlık (%)"]):
-        plt.text(v + 1, i, f'%{v:.1f}', color='black', va='center', fontweight='bold', fontsize=10)
-    plt.title("Tüm Sütunların ML Modelleme Hazırlık Durumu", fontsize=15, fontweight='bold')
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "13_global_ml_hazirlik.png"))
+    plt.savefig(os.path.join(gorsel_dir, "Adim_10_Kalite_Panel.png"))
     plt.close()
-
-    # 14. Doluluk vs Kalite İlişkisi (Scatter)
-    plt.figure(figsize=(10,6))
-    sns.scatterplot(x="Doluluk/Sağlık (%)", y="Kalite Puanı", hue="Durum", size="Benzersiz Değer", data=report_df, palette="deep", sizes=(100, 500))
-    plt.title("Veri Doluluğu ve Kalite Puanı Karşılaştırması", fontsize=14)
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "14_global_doluluk_vs_kalite.png"))
-    plt.close()
-
-    # 15. Global Kalite Isı Haritası (Heatmap)
-    plt.figure(figsize=(10,6))
-    pivot_data = report_df.set_index("Sütun Adı")[["Kalite Puanı"]]
-    sns.heatmap(pivot_data, annot=True, cmap="RdYlGn", center=80)
-    plt.title("Veri Seti Kalite Matrisi (Step 10 Final)", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "15_global_kalite_heatmap.png"))
-    plt.close()
-
-    # 16. Durum Dağılımı (Bar)
-    plt.figure(figsize=(10,6))
-    counts = report_df["Durum"].value_counts()
-    bars = sns.barplot(x=counts.index, y=counts.values, palette="muted")
-    for i, v in enumerate(counts.values):
-        plt.text(i, v + 0.1, str(v), ha='center', fontweight='bold')
-    plt.xticks(rotation=45, ha='right') # TAŞMAYI ÖNLEMEK İÇİN ROTASYON
-    plt.title("Sütunlarımızın Final Durum Dağılımı", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "16_global_durum_ozeti.png"))
-    plt.close()
-
-    # 17. Final Proje Sağlık Ölçer (Gauge-like Bar)
-    plt.figure(figsize=(10,4))
-    avg_score = report_df["Kalite Puanı"].mean()
-    plt.barh(['Proje Sağlık Puanı'], [avg_score], color='#2ecc71' if avg_score > 90 else '#f1c40f')
-    plt.xlim(0, 100)
-    plt.text(avg_score/2, 0, f"%{avg_score:.1f}", va='center', ha='center', fontsize=30, color='white', fontweight='bold')
-    plt.title("VERİ MÜHENDİSLİĞİ FİNAL SKORU", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "17_global_proje_skoru.png"))
-    plt.close()
+    print(f"Görseller kaydedildi: {gorsel_dir}")
 
 def analiz_adim10_v4():
     print("\n" + "="*50)

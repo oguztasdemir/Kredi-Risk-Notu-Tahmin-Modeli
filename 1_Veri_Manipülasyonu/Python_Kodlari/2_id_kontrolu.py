@@ -40,70 +40,58 @@ def analyze_all():
     train_df = pd.read_csv(os.path.join(input_dir, "egitim_verisi.csv"), low_memory=False)
     test_df = pd.read_csv(os.path.join(input_dir, "test_verisi.csv"), low_memory=False)
     
-    # --- GÖRSEL 1: DOLULUK ANALİZİ (BAR CHART) ---
-    train_total = len(train_df)
-    test_total = len(test_df)
-    train_null = train_df['Customer_ID'].isnull().sum()
-    test_null = test_df['Customer_ID'].isnull().sum()
+    # Akademik Stil
+    plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
     
-    plt.figure(figsize=(10, 6))
-    labels_null = ['Eğitim (Dolu)', 'Eğitim (Boş)', 'Test (Dolu)', 'Test (Boş)']
-    values_null = [train_total - train_null, train_null, test_total - test_null, test_null]
-    ax1 = sns.barplot(x=labels_null, y=values_null, palette=['#2ecc71', '#e74c3c', '#2ecc71', '#e74c3c'], hue=labels_null, legend=False)
-    plt.title('Görsel 1: Müşteri ID Doluluk Analizi (Satır Bazlı)', fontsize=14, fontweight='bold')
-    add_labels(ax1)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "1_id_doluluk.png"), dpi=150)
-    plt.close()
+    fig = plt.figure(figsize=(16, 12))
+    gs = fig.add_gridspec(2, 2)
 
-    # --- GÖRSEL 2: VERİ ÇAKIŞMA ANALİZİ (VENN - SATIR BAZLI) ---
-    combined = pd.concat([train_df, test_df])
-    duplicates_count = combined.duplicated().sum()
-    
-    fig, ax = plt.subplots(figsize=(10, 8))
-    circle1 = Circle((-0.4, 0), 1, alpha=0.3, color='skyblue', label='Eğitim')
-    circle2 = Circle((0.4, 0), 1, alpha=0.3, color='salmon', label='Test')
-    ax.add_patch(circle1)
-    ax.add_patch(circle2)
-    ax.text(-0.8, 0, f"{train_total}", fontsize=16, fontweight='bold', ha='center')
-    ax.text(0.8, 0, f"{test_total}", fontsize=16, fontweight='bold', ha='center')
-    ax.text(0, 0, f"{duplicates_count}", fontsize=20, fontweight='bold', ha='center', color='black')
-    ax.set_xlim(-1.8, 1.8)
-    ax.set_ylim(-1.5, 1.5)
-    ax.set_aspect('equal')
-    ax.axis('off')
-    plt.title('Görsel 2: Veri Çakışma Analizi (Satır-Satır)', fontsize=16, fontweight='bold', pad=20)
-    plt.legend(handles=[circle1, circle2], loc='upper right')
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "2_id_venn_satir.png"), dpi=150)
-    plt.close()
+    # 1. ID DOLULUK (Bar Chart)
+    ax1 = fig.add_subplot(gs[0, 0])
+    train_total = len(train_df); test_total = len(test_df)
+    train_null = train_df['Customer_ID'].isnull().sum(); test_null = test_df['Customer_ID'].isnull().sum()
+    labels = ['Eğitim (Dolu)', 'Eğitim (Boş)', 'Test (Dolu)', 'Test (Boş)']
+    values = [train_total - train_null, train_null, test_total - test_null, test_null]
+    sns.barplot(x=labels, y=values, palette=['#2980b9', '#c0392b', '#3498db', '#e74c3c'], ax=ax1, hue=labels, legend=False)
+    ax1.set_title("Şekil 2.1: Müşteri ID Kayıt Doluluk Oranları")
+    for p in ax1.patches:
+        ax1.annotate(f'{int(p.get_height())}', (p.get_x() + p.get_width()/2., p.get_height()),
+                    ha='center', va='bottom', fontsize=10, fontweight='bold')
 
-    # --- GÖRSEL 3: MÜŞTERİ SAYISI ÖZET TABLOSU ---
-    train_ids = set(train_df['Customer_ID'].unique())
-    test_ids = set(test_df['Customer_ID'].unique())
+    # 2. VENN ANALİZİ (Görselleştirilmiş Küme Çakışması)
+    ax2 = fig.add_subplot(gs[0, 1])
+    train_ids = set(train_df['Customer_ID'].unique()); test_ids = set(test_df['Customer_ID'].unique())
     common_ids = train_ids.intersection(test_ids)
-    
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.axis('off')
+    circle1 = Circle((-0.4, 0), 1, alpha=0.2, color='#2980b9')
+    circle2 = Circle((0.4, 0), 1, alpha=0.2, color='#e67e22')
+    ax2.add_patch(circle1); ax2.add_patch(circle2)
+    ax2.text(-0.7, 0, f"Eğitim\n{len(train_ids)}", ha='center', fontweight='bold')
+    ax2.text(0.7, 0, f"Test\n{len(test_ids)}", ha='center', fontweight='bold')
+    ax2.text(0, 0, f"Ortak\n{len(common_ids)}", ha='center', fontweight='bold', color='#2c3e50')
+    ax2.set_xlim(-1.8, 1.8); ax2.set_ylim(-1.2, 1.2); ax2.axis('off')
+    ax2.set_title("Şekil 2.2: Veri Setleri Arası Müşteri ID Çakışma Analizi")
+
+    # 3. ÖZET VERİ SAĞLIĞI TABLOSU
+    ax3 = fig.add_subplot(gs[1, :])
+    ax3.axis('off')
     table_data = [
-        ["Kategori", "Benzersiz Müşteri Sayısı"],
-        ["Eğitim Verisi", len(train_ids)],
-        ["Test Verisi", len(test_ids)],
-        ["Ortak (Çakışan) Müşteriler", len(common_ids)]
+        ["Metrik Tanımı", "Eğitim Seti", "Test Seti", "Toplam / Ortak"],
+        ["Toplam Satır Sayısı", train_total, test_total, train_total + test_total],
+        ["Eksik ID Sayısı", train_null, test_null, train_null + test_null],
+        ["Benzersiz Müşteri", len(train_ids), len(test_ids), "-"],
+        ["Veri Bütünlüğü", f"{(1 - train_null/train_total)*100:.2f}%", f"{(1 - test_null/test_total)*100:.2f}%", "Kritik"]
     ]
-    table = ax.table(cellText=table_data, loc='center', cellLoc='center', colWidths=[0.5, 0.4])
-    table.auto_set_font_size(False)
-    table.set_fontsize(12)
-    table.scale(1.2, 2.5)
-    for i in range(2):
-        table[(0, i)].set_facecolor("#34495e")
-        table[(0, i)].set_text_props(color="white", fontweight='bold')
-    plt.title('Görsel 3: Müşteri Sayısı Özet Tablosu', fontsize=16, fontweight='bold', pad=20)
+    tab = ax3.table(cellText=table_data, loc='center', cellLoc='center')
+    tab.auto_set_font_size(False); tab.set_fontsize(11); tab.scale(1, 2.5)
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0: cell.set_facecolor('#34495e'); cell.set_text_props(color='white', fontweight='bold')
+        else: cell.set_facecolor('#fdfefe')
+    ax3.set_title("Tablo 2.1: Müşteri ID Denetimi ve Veri Sağlığı İndeksi", pad=30)
+
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "3_musteri_sayisi_tablo.png"), dpi=150)
+    plt.savefig(os.path.join(gorsel_dir, "Adim_2_Konsolide_Rapor.png"))
     plt.close()
-    
-    print("Tüm analizler başarıyla tamamlandı.")
+    print("Analiz raporu başarıyla oluşturuldu.")
 
 if __name__ == "__main__":
     analyze_all()

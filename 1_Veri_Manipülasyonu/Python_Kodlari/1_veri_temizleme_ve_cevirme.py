@@ -155,61 +155,93 @@ print("\nTüm işlemler başarıyla tamamlandı!")
 
 # --- GÖRSELLEŞTİRME EKLEMESİ (ADIM 1) ---
 def gorsel_olustur_adim1():
-    print("\n> Pedagojik Görseller Hazırlanıyor (Adım 1)...")
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 1)...")
     gorsel_dir = os.path.join(base_path, "1_Veri_Manipülasyonu", "Gorseller", "1_Format_ve_Ceviri")
     if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
-    plt.style.use('seaborn-v0_8-pastel')
-
-    # 1. Çeviri Oranı (Donut Chart)
-    plt.figure(figsize=(8,8))
-    translated_cols = len(column_translation)
-    total_cols = 28 # Yaklaşık
-    plt.pie([translated_cols, total_cols - translated_cols], 
-            labels=['Çevrilen Sütunlar', 'Sayısal/Sabitler'], 
-            autopct='%1.1f%%', colors=['#2ecc71', '#3498db'], startangle=90, wedgeprops={'width':0.4})
-    plt.title("Veri Seti Türkçe Dil Dönüşüm Oranı", fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "1_ceviri_orani_donut.png"))
-    plt.close()
-
-    # 2. Before-After Karşılaştırma Tablosu (Kapsamlı Forensik Kanıt)
-    print("> Kapsamlı Before-After Tablosu Hazırlanıyor...")
-    try:
-        # Karşılaştırma için en kritik 8 sütunu seçelim
-        target_cols_raw = ["ID", "Month", "Age", "Occupation", "Annual_Income", "Monthly_Inhand_Salary", "Num_Bank_Accounts", "Credit_Mix"]
-        target_cols_clean = ["ID", "Ay", "Yaş", "Meslek", "Yıllık Gelir", "Aylık Net Maaş", "Banka Hesabı Sayısı", "Kredi Karışımı"]
-        
-        # Ham veriyi oku (İlk 8 satır)
-        raw_path = os.path.join(base_path, "0_Dataset", "egitim_verisi.csv")
-        raw_df = pd.read_csv(raw_path, nrows=8)[target_cols_raw]
-        
-        # Temizlenmiş veriyi oku (İlk 8 satır)
-        clean_path = os.path.join(base_path, "1_Veri_Manipülasyonu", "Ciktilar", "1_Format_ve_Ceviri", "egitim_verisi.xlsx")
-        clean_df = pd.read_excel(clean_path, nrows=8)[target_cols_clean]
-        
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 10))
-        ax1.axis('off')
-        ax2.axis('off')
-        
-        # Before Tablosu
-        t1 = ax1.table(cellText=raw_df.values, colLabels=raw_df.columns, loc='center', cellLoc='left')
-        t1.auto_set_font_size(False); t1.set_fontsize(8)
-        t1.scale(1, 1.8) # Tabloyu dikeyde uzat
-        ax1.set_title("1. ADIM: ÖNCE (HAM VERİ - NOISY & ENGLISH)", fontsize=14, fontweight='bold', color='#c0392b', pad=20)
-        
-        # After Tablosu
-        t2 = ax2.table(cellText=clean_df.values, colLabels=clean_df.columns, loc='center', cellLoc='left')
-        t2.auto_set_font_size(False); t2.set_fontsize(8)
-        t2.scale(1, 1.8) # Tabloyu dikeyde uzat
-        ax2.set_title("1. ADIM: SONRA (TEMİZLENMİŞ VERİ - CLEAN & TÜRKÇE)", fontsize=14, fontweight='bold', color='#27ae60', pad=20)
-        
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, "2_before_after_karsilastirma.png"), dpi=300)
-        plt.close()
-    except Exception as e:
-        print(f"Uyarı: Kapsamlı Before-After görseli oluşturulamadı: {e}")
-
     
-    print(f"Görseller kaydedildi: {gorsel_dir}")
+    # Akademik Stil Ayarları
+    plt.rcParams.update({
+        'font.family': 'sans-serif',
+        'font.size': 10,
+        'axes.titlesize': 14,
+        'axes.titleweight': 'bold',
+        'axes.labelsize': 11,
+        'savefig.dpi': 300
+    })
+
+    # 1. BİRLEŞİK ANALİZ PANELİ (Donut + Örnek Tablo)
+    fig = plt.figure(figsize=(16, 10))
+    gs = fig.add_gridspec(2, 2)
+    
+    # Sol Üst: Çeviri Oranı Donut
+    ax1 = fig.add_subplot(gs[0, 0])
+    translated_cols = len(column_translation)
+    total_cols = 28 
+    ax1.pie([translated_cols, total_cols - translated_cols], 
+            labels=['Yerelleştirilen\nÖzellikler', 'Sabit/Sayısal\nVeriler'], 
+            autopct='%1.1f%%', colors=['#2980b9', '#ecf0f1'], startangle=90, 
+            wedgeprops={'width':0.4, 'edgecolor':'#2c3e50'})
+    ax1.set_title("Şekil 1.1: Veri Sözlüğü Yerelleştirme Oranı")
+
+    # Sağ Üst: Temel İstatistik Özeti
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax2.axis('off')
+    summary_data = [
+        ["Metrik", "Değer"],
+        ["Toplam Sütun", total_cols],
+        ["Çevrilen Sütun", translated_cols],
+        ["Meslek Grupları", len(occupation_translation)],
+        ["Kredi Türleri", len(loan_type_translation)],
+        ["Format", "UTF-8 / Excel"]
+    ]
+    table_summary = ax2.table(cellText=summary_data, loc='center', cellLoc='center', colWidths=[0.4, 0.4])
+    table_summary.auto_set_font_size(False)
+    table_summary.set_fontsize(11)
+    table_summary.scale(1, 2.5)
+    for (row, col), cell in table_summary.get_celld().items():
+        if row == 0:
+            cell.set_facecolor('#34495e')
+            cell.set_text_props(color='white', fontweight='bold')
+        else:
+            cell.set_facecolor('#f8f9fa')
+
+    # Alt: Before-After Karşılaştırma
+    ax3 = fig.add_subplot(gs[1, :])
+    ax3.axis('off')
+    try:
+        target_cols_raw = ["ID", "Month", "Age", "Occupation", "Annual_Income", "Monthly_Inhand_Salary", "Credit_Mix"]
+        target_cols_clean = ["ID", "Ay", "Yaş", "Meslek", "Yıllık Gelir", "Aylık Net Maaş", "Kredi Karışımı"]
+        raw_path = os.path.join(base_path, "0_Dataset", "egitim_verisi.csv")
+        raw_df = pd.read_csv(raw_path, nrows=5)[target_cols_raw]
+        clean_path = os.path.join(base_path, "1_Veri_Manipülasyonu", "Ciktilar", "1_Format_ve_Ceviri", "egitim_verisi.xlsx")
+        clean_df = pd.read_excel(clean_path, nrows=5)[target_cols_clean]
+        
+        # Sadece ilk 3 satırı gösterelim daha net olması için
+        combined_data = []
+        for i in range(3):
+            combined_data.append(raw_df.iloc[i].values)
+            combined_data.append(clean_df.iloc[i].values)
+            
+        labels = []
+        for i in range(3):
+            labels.extend([f"Ham {i+1}", f"Temiz {i+1}"])
+            
+        table_comp = ax3.table(cellText=combined_data, rowLabels=labels, colLabels=target_cols_clean, loc='center', cellLoc='left')
+        table_comp.auto_set_font_size(False)
+        table_comp.set_fontsize(9)
+        table_comp.scale(1, 2)
+        for (row, col), cell in table_comp.get_celld().items():
+            if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
+            elif row % 2 == 0: cell.set_facecolor('#ecf0f1') # Ham satırlar
+            else: cell.set_facecolor('#d5f5e3') # Temiz satırlar
+            
+        ax3.set_title("Tablo 1.1: Ham Veri ve Temizlenmiş Veri Karşılaştırmalı Örneklem", pad=30)
+    except Exception as e:
+        ax3.text(0.5, 0.5, f"Veri yükleme hatası: {e}", ha='center')
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "Adim_1_Konsolide_Rapor.png"))
+    plt.close()
+    print(f"Görsel kaydedildi: {gorsel_dir}")
 
 gorsel_olustur_adim1()

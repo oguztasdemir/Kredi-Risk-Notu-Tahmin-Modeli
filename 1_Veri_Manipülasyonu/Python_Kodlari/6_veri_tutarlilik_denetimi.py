@@ -133,54 +133,50 @@ if __name__ == "__main__":
 
 # --- GÖRSELLEŞTİRME EKLEMESİ (ADIM 6) ---
 def gorsel_olustur_adim6():
-    print("\n> Pedagojik Görseller Hazırlanıyor (Adım 6)...")
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 6)...")
     gorsel_dir = os.path.join(base_path, "1_Veri_Manipülasyonu", "Gorseller", "6_Veri_Tutarlilik_Denetimi")
     if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
     
     # Raporu geri okuyalım (Özet tablo için)
     ozet_df = pd.read_excel(output_file, sheet_name='GENEL ÖZET')
-    plt.style.use('seaborn-v0_8-pastel')
+    
+    # Akademik Stil
+    plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    fig = plt.figure(figsize=(18, 12))
+    gs = fig.add_gridspec(2, 2)
 
-    # 1. Sütun Bazlı Başarı Oranları (Bar Chart)
-    plt.figure(figsize=(12,6))
-    bars = sns.barplot(x="Sütun Adı", y="Başarı Oranı (%)", data=ozet_df, palette="viridis", hue="Sütun Adı", legend=False)
-    plt.axhline(95, color='red', linestyle='--', label='95% Eşik')
-    
-    for i, rate in enumerate(ozet_df["Başarı Oranı (%)"]):
-        plt.text(i, rate + 2, f"%{rate:.1f}", ha='center', fontweight='bold')
-    
-    plt.title("Müşteri Verisi Tarihsel Tutarlılık Karnesi", fontsize=14, fontweight='bold')
-    plt.ylim(0, 115)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "1_tutarlilik_basari_bar.png"))
-    plt.close()
+    # 1. Sütun Bazlı Başarı Oranları (Bar)
+    ax1 = fig.add_subplot(gs[0, 0])
+    sns.barplot(x="Sütun Adı", y="Başarı Oranı (%)", data=ozet_df, palette="Blues_d", ax=ax1, hue="Sütun Adı", legend=False)
+    ax1.axhline(95, color='#c0392b', linestyle='--', alpha=0.5)
+    ax1.set_title("Şekil 6.1: Veri Alanı Bazlı Tutarlılık Skorları")
+    ax1.set_ylim(0, 110)
+    for p in ax1.patches:
+        ax1.annotate(f'%{p.get_height():.1f}', (p.get_x() + p.get_width()/2., p.get_height()), ha='center', va='bottom', fontweight='bold')
 
-    # 2. Denetim Dashboard (Geçti/Kaldı)
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-    
-    # Başarılı vs Hatalı Toplam
+    # 2. Genel Bütünlük (Donut)
+    ax2 = fig.add_subplot(gs[0, 1])
     tik = ozet_df["Başarılı (✓)"].sum()
     carpi = ozet_df["Hatalı (X)"].sum()
-    axes[0].pie([tik, carpi], labels=['Tutarlı (✓)', 'Tutarsız (X)'], autopct='%1.1f%%', colors=['#2ecc71', '#e74c3c'], startangle=90)
-    axes[0].set_title("Genel Veri Bütünlüğü Oranı")
-    
-    # En Hatalı Sütunlar
-    hatalilar = ozet_df.sort_values(by="Hatalı (X)", ascending=False).head(5)
-    sns.barplot(x="Hatalı (X)", y="Sütun Adı", data=hatalilar, ax=axes[1], palette="Reds_r")
-    for i, v in enumerate(hatalilar["Hatalı (X)"]):
-        axes[1].text(v + 1, i, str(v), va='center', fontweight='bold')
-    axes[1].set_title("En Çok Tutarsızlık Tespit Edilen 5 Alan")
-    
-    plt.suptitle("KATEGORİK VERİ ADLİ DENETİM (FORENSIC AUDIT) DASHBOARD", fontsize=16, fontweight='bold')
-    
-    # Not Ekle
-    fig.text(0.5, 0.01, "Denetim Kriteri: Müşteri ID bazlı tarihsel veri eşleşme kontrolü (Zam/Hata payı dahil).", 
-             ha='center', fontsize=10, bbox=dict(facecolor='white', alpha=0.5, boxstyle='round'))
+    ax2.pie([tik, carpi], labels=['Tutarlı Kayıtlar', 'Tutarsız / Onarılması Gereken'], 
+            autopct='%1.1f%%', colors=['#27ae60', '#e74c3c'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
+    ax2.set_title("Şekil 6.2: Genel Veri Seti Bütünlük Oranı")
 
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.savefig(os.path.join(gorsel_dir, "2_tutarlilik_dashboard.png"), dpi=300)
+    # 3. Hata Detay Tablosu
+    ax3 = fig.add_subplot(gs[1, :])
+    ax3.axis('off')
+    hatalilar = ozet_df.sort_values(by="Hatalı (X)", ascending=False)
+    table_data = [["Özellik", "Hatalı Kayıt Sayısı", "Başarı Oranı (%)"]] + hatalilar[["Sütun Adı", "Hatalı (X)", "Başarı Oranı (%)"]].values.tolist()
+    tab = ax3.table(cellText=table_data, loc='center', cellLoc='center')
+    tab.auto_set_font_size(False); tab.set_fontsize(11); tab.scale(1, 2)
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
+        else: cell.set_facecolor('#f8f9fa')
+    ax3.set_title("Tablo 6.1: Veri Alanı Bazlı Forensic Denetim Bulguları", pad=20)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "Adim_6_Konsolide_Rapor.png"))
     plt.close()
-    
     print(f"Görseller kaydedildi: {gorsel_dir}")
 
 # Görselleştirmeyi çalıştır

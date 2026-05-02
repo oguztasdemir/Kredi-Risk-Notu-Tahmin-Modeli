@@ -28,89 +28,58 @@ output_file = os.path.join(output_dir, "ml_hazir_sayisal_veri.xlsx")
 mapping_file = os.path.join(output_dir, "kodlama_sozlugu_mapping.xlsx")
 
 def gorsel_olustur_adim12(df_original, df_encoded, mappings):
-    print("\n> Çocuk Dostu Görseller Hazırlanıyor (Adım 12)...")
-    plt.style.use('seaborn-v0_8-pastel')
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 12)...")
+    if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
     
-    # 1. Kodlama Özeti (Pie)
-    plt.figure(figsize=(8,8))
+    # Akademik Stil
+    plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    
+    fig = plt.figure(figsize=(18, 14))
+    gs = fig.add_gridspec(3, 2)
+
+    # 12.1 Kodlama Özeti (Pie)
+    ax1 = fig.add_subplot(gs[0, 0])
     encoded_count = len(mappings)
     numerical_count = len(df_encoded.columns) - encoded_count
-    plt.pie([encoded_count, numerical_count], labels=['Kodlanan (Metin)', 'Zaten Sayısal'], autopct='%1.1f%%', colors=['#f39c12', '#3498db'], startangle=90)
-    plt.title("Veri Setimiz Sayısallaştı!", fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "1_kodlama_ozeti_pie.png"))
-    plt.close()
+    ax1.pie([encoded_count, numerical_count], labels=['Kodlanan Özellikler', 'Sabit Sayısal Özellikler'], 
+            autopct='%1.1f%%', colors=['#f39c12', '#3498db'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
+    ax1.set_title("Şekil 12.1: Veri Seti Sayısallaştırma Oranı")
 
-    # 2. Hedef Değişken (Kredi Skoru) Kodlama Mantığı
+    # 12.2 Hedef Değişken Mantığı (Barh)
+    ax2 = fig.add_subplot(gs[0, 1])
     if "Kredi Skoru" in mappings:
-        plt.figure(figsize=(10,6))
         m = mappings["Kredi Skoru"]
         sorted_m = sorted(m.items(), key=lambda x: x[1])
         labels, values = zip(*sorted_m)
-        sns.barplot(x=list(values), y=list(labels), palette="viridis")
-        plt.title("Kredi Skoru: Kim Hangi Puanı Aldı?", fontsize=14)
-        for i, v in enumerate(values):
-            plt.text(v + 0.1, i, str(v), color='black', va='center', fontweight='bold')
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, "2_kredi_skoru_mantigi.png"))
-        plt.close()
+        sns.barplot(x=list(values), y=list(labels), palette="viridis", ax=ax2)
+        ax2.set_title("Şekil 12.2: Kredi Skoru (Hedef Etiket) Ordinal Kodlama Matrisi")
 
-    # 3-7. Önemli Sütunların Dağılımı (5 Adet)
-    cols_to_plot = [c for c in mappings.keys() if c != "Kredi Skoru"][:5]
-    for i, col in enumerate(cols_to_plot):
-        plt.figure(figsize=(10,6))
-        counts = df_original[col].value_counts().head(10)
-        sns.barplot(x=counts.values, y=counts.index, palette="husl")
-        plt.title(f"{col} - En Sık Geçen 10 Kategori", fontsize=12)
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, f"{i+3}_{col}_dagilim.png"))
-        plt.close()
+    # 12.3 Kodlama Dönüşüm Forensik Paneli (Table)
+    ax3 = fig.add_subplot(gs[1:, :])
+    ax3.axis('off')
+    
+    target_cols = [c for c in mappings.keys() if c != "Kredi Skoru"][:5]
+    before_rows = df_original[target_cols].head(5).values.tolist()
+    after_rows = df_encoded[target_cols].head(5).values.tolist()
+    
+    combined_rows = [["Özellik"] + target_cols]
+    for i in range(5):
+        combined_rows.append(["ÖNCE (Metin)"] + [str(x) for x in before_rows[i]])
+        combined_rows.append(["SONRA (Kod)"] + [str(x) for x in after_rows[i]])
+        combined_rows.append(["-" for _ in range(len(target_cols)+1)]) # Ayırıcı
+        
+    tab = ax3.table(cellText=combined_rows, loc='center', cellLoc='center')
+    tab.auto_set_font_size(False); tab.set_fontsize(9); tab.scale(1, 1.8)
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
+        elif "ÖNCE" in cell.get_text().get_text(): cell.set_facecolor('#fff3e0')
+        elif "SONRA" in cell.get_text().get_text(): cell.set_facecolor('#e8f5e9')
+    ax3.set_title("Tablo 12.1: Veri Dönüşüm Forensik Analizi (Önce vs Sonra)", pad=20)
 
-
-    # 9. Isı Haritası (Kısmi - Kodlanmış Sütunlar)
-    plt.figure(figsize=(12,8))
-    encoded_cols = list(mappings.keys())
-    sns.heatmap(df_encoded[encoded_cols].corr(), annot=True, cmap="YlGnBu", fmt=".2f")
-    plt.title("Kodlanmış Sütunlar Arasındaki İlişki", fontsize=14)
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "9_kodlanmis_korelasyon.png"))
+    plt.savefig(os.path.join(gorsel_dir, "Adim_12_Kodlama_Panel.png"))
     plt.close()
-
-    plt.savefig(os.path.join(gorsel_dir, "10_tip_degisimi_bar.png"))
-    plt.close()
-
-    # 11. Kodlama Dönüşüm Forensik Paneli (Before-After)
-    print("> Kodlama Dönüşüm Paneli Hazırlanıyor...")
-    try:
-        # Kodlanan sütunlardan bir kesit alalım
-        target_cols = [c for c in mappings.keys() if c != "Kredi Skoru"][:5]
-        
-        # Orijinal Metin Hali
-        before_df = df_original[target_cols].head(8)
-        # Kodlanmış Sayısal Hali
-        after_df = df_encoded[target_cols].head(8)
-        
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 10))
-        ax1.axis('off')
-        ax2.axis('off')
-        
-        # Before (Metin)
-        t1 = ax1.table(cellText=before_df.values, colLabels=before_df.columns, loc='center', cellLoc='left')
-        t1.auto_set_font_size(False); t1.set_fontsize(8)
-        t1.scale(1, 1.8)
-        ax1.set_title("ADIM 12: ÖNCE (KATEGORİK - METİNSEL VERİ)", fontsize=14, fontweight='bold', color='#f39c12', pad=20)
-        
-        # After (Sayısal)
-        t2 = ax2.table(cellText=after_df.values, colLabels=after_df.columns, loc='center', cellLoc='left')
-        t2.auto_set_font_size(False); t2.set_fontsize(8)
-        t2.scale(1, 1.8)
-        ax2.set_title("ADIM 12: SONRA (NUMERİK - ENCODED DATA)", fontsize=14, fontweight='bold', color='#2ecc71', pad=20)
-        
-        plt.tight_layout()
-        plt.savefig(os.path.join(gorsel_dir, "11_kodlama_forensik_panel.png"), dpi=300)
-        plt.close()
-    except Exception as e:
-        print(f"Uyarı: Kodlama Forensik Paneli oluşturulamadı: {e}")
+    print(f"Görseller kaydedildi: {gorsel_dir}")
 
 def kodlama_adim12():
     print("\n" + "="*50)
