@@ -57,4 +57,4 @@ Projenin GitHub üzerinde verimli çalışabilmesi ve 100MB dosya sınırına ta
 3.  **`main.py`** dosyasını çalıştırın ve ekrandaki menüyü takip edin.
 
 ---
-*Bu çalışma, İstanbul Medeniyet Üniversitesi - Makine Öğrenmesine Giriş dersi Proje 2 rubrik kriterlerine %100 uyumlu şekilde hazırlanmış profesyonel bir projedir.*
+*Bu çalışma, İstanbul Medeniyet Üniversitesi - Makine Öğrenmesine Giriş dersinin bir grup projesidir."
