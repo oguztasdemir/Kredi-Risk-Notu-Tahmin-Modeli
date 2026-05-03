@@ -1,4 +1,4 @@
-# Kredi Notu Sınıflandırma ve Risk Analizi Modellemesi (v3.0)
+# Kredi Notu Sınıflandırma ve Risk Analizi Modellemesi
 
 Bu proje, bankacılık sektöründeki kredi riskini doğru bir şekilde sınıflandırmak amacıyla 100.000 müşterinin finansal verileri kullanılarak geliştirilmiş, uçtan uca ve akademik standartlarda bir makine öğrenmesi boru hattıdır (pipeline). Proje, ham verinin restorasyonundan başlayıp hibrit bir Stacking Ensemble mimarisiyle %89.38 başarı oranına ulaşan profesyonel bir çözüm sunar.
 
