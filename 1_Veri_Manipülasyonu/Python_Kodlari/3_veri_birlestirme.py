@@ -106,7 +106,7 @@ def birlestir_ve_sirala():
         ["Toplam Gözlem", len(birlesik_df)],
         ["Eğitim Payı", f"{(len(egitim)/len(birlesik_df))*100:.1f}%"],
         ["Test Payı", f"{(len(test)/len(birlesik_df))*100:.1f}%"],
-        ["Eşsiz Müşteri", musteri_ay_sayisi.nunique()],
+        ["Eşsiz Müşteri", len(musteri_ay_sayisi)],
         ["Ortalama Kayıt/Müşteri", f"{musteri_ay_sayisi.mean():.2f}"]
     ]
     tab = ax4.table(cellText=stats_data, loc='center', cellLoc='center', colWidths=[0.5, 0.4])
@@ -114,7 +114,7 @@ def birlestir_ve_sirala():
     for (row, col), cell in tab.get_celld().items():
         if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white', fontweight='bold')
         else: cell.set_facecolor('#f8f9fa')
-    ax4.set_title("Tablo 3.1: Birleşik Veri Seti Deskriptif İstatistikleri")
+    ax4.set_title("Tablo 3.1: Birleşik Veri Seti Betimsel İstatistikleri")
 
     plt.tight_layout()
     plt.savefig(os.path.join(gorsel_dir, "Adim_3_Konsolide_Rapor.png"))

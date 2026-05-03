@@ -122,31 +122,42 @@ def model_kiyaslama_full_compliance():
     res_df = pd.DataFrame(results).sort_values("Dogruluk", ascending=False)
     res_df.to_excel(os.path.join(output_dir, "Model_Kiyaslama_Full_Rapor.xlsx"), index=False)
     
-    # Görsel 1: Basit Bar Chart
-    plt.figure(figsize=(14, 10))
-    bars = sns.barplot(data=res_df, x='Dogruluk', y='Model', palette='viridis')
+    # Akademik Panel Oluşturma
+    fig = plt.figure(figsize=(20, 12))
+    gs = fig.add_gridspec(1, 2)
     
-    # Değerleri bar yanına ekle
+    # 3.2.1 Model Benchmarking
+    ax1 = fig.add_subplot(gs[0, 0])
+    sns.barplot(data=res_df, x='Dogruluk', y='Model', palette='viridis', ax=ax1)
     for i, v in enumerate(res_df['Dogruluk']):
-        plt.text(v + 0.01, i, f'%{v*100:.1f}', color='black', va='center', fontweight='bold')
+        ax1.text(v + 0.01, i, f'%{v*100:.1f}', color='black', va='center', fontweight='bold', fontsize=9)
+    ax1.set_title("Şekil 3.2.1: Model Performans Karşılaştırması (15+ Algoritma)", pad=20)
+    ax1.set_xlabel("Tahmin Doğruluğu (%)")
 
-    plt.title("Geniş Kapsamlı Model Benchmarking (15+ Algoritma)", fontsize=16, fontweight='bold')
-    plt.xlabel("Tahmin Doğruluğu (%)")
-    plt.ylabel("Algoritma")
-    plt.xlim(0, 1.1)
-    
-    # Bilgi Notu Ekle (Hoca/Akademik Sunum İçin)
-    info_text = "Metot: 5-Fold Cross Validation\nMetrik: Accuracy (Doğruluk)\nVeri: Dengelenmiş (SMOTE)"
-    plt.text(0.7, len(res_df)-1, info_text, fontsize=10, bbox=dict(facecolor='white', alpha=0.5, boxstyle='round'))
-
-    plt.grid(True, axis='x', linestyle='--', alpha=0.3)
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "01_Genis_Model_Karsilastirma.png"), dpi=300)
-    plt.close()
-
-    # Görsel 2: ROC Curve (Top 5 için)
+    # 3.2.2 ROC Eğrileri (Top 5)
+    ax2 = fig.add_subplot(gs[0, 1])
+    from sklearn.preprocessing import label_binarize
+    classes = np.unique(y_val)
+    y_val_bin = label_binarize(y_val, classes=classes)
     top_5 = sorted(trained_models, key=lambda x: x[2], reverse=True)[:5]
-    gorsel_roc_egrisi([(t[0], t[1]) for t in top_5], X_val, y_val)
+    
+    for name, model, _ in top_5:
+        try:
+            if hasattr(model, "predict_proba"): y_score = model.predict_proba(X_val)
+            else: y_score = model.decision_function(X_val)
+            fpr, tpr, _ = roc_curve(y_val_bin.ravel(), y_score.ravel())
+            ax2.plot(fpr, tpr, label=f'{name} (AUC = {auc(fpr, tpr):.2f})')
+        except: continue
+    
+    ax2.plot([0, 1], [0, 1], 'k--', alpha=0.5)
+    ax2.set_title("Şekil 3.2.2: En Başarılı 5 Modelin ROC Eğrisi Analizi", pad=20)
+    ax2.set_xlabel("Yanlış Pozitif Oranı")
+    ax2.set_ylabel("Doğru Pozitif Oranı")
+    ax2.legend(loc="lower right")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(gorsel_dir, "Adim_3_2_Model_Kiyaslama.png"), dpi=300)
+    plt.close()
 
     print(f"\n> ŞAMPİYON: {res_df.iloc[0]['Model']} (Acc: %{res_df.iloc[0]['Dogruluk']*100:.1f})")
 

@@ -55,43 +55,30 @@ def pca_analizi():
     # 3. Görselleştirme
     plt.style.use('seaborn-v0_8-whitegrid')
     
-    # Figure 6: Scree Plot (Varyans Açıklama)
-    plt.figure(figsize=(10, 6))
-    bars = plt.bar(range(1, 11), exp_var_ratio[:10], alpha=0.5, align='center', label='Bireysel Varyans')
-    plt.step(range(1, 11), cum_var_ratio[:10], where='mid', label='Kümülatif Varyans', color='red')
+    # Akademik Panel Oluşturma
+    fig = plt.figure(figsize=(18, 10))
+    gs = fig.add_gridspec(1, 2)
     
-    # İlk 5 bileşen için değerleri ekle
-    for i, bar in enumerate(bars[:5]):
-        h = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2, h + 0.01, f'%{h*100:.1f}', ha='center', fontweight='bold', fontsize=8)
+    # 2.4.1 Scree Plot
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax1.bar(range(1, 11), exp_var_ratio[:10], alpha=0.5, align='center', label='Bireysel Varyans')
+    ax1.step(range(1, 11), cum_var_ratio[:10], where='mid', label='Kümülatif Varyans', color='red')
+    ax1.axhline(y=0.90, color='r', linestyle='--', alpha=0.3)
+    ax1.set_title("Şekil 2.4.1: İlk 10 PCA Bileşeni Varyans Oranları (Scree Plot)", pad=20)
+    ax1.set_xlabel("Temel Bileşen İndeksi")
+    ax1.set_ylabel("Açıklanan Varyans Oranı")
+    ax1.legend(loc='best')
 
-    plt.axhline(y=0.90, color='r', linestyle='--')
-    plt.title("Figür 2-6: İlk 10 PCA Bileşeni Varyans Oranları", fontweight='bold')
-    plt.xlabel("Temel Bileşen İndeksi")
-    plt.ylabel("Açıklanan Varyans Oranı")
-    
-    # Not Ekle
-    plt.text(0.6, 0.2, f"Bilginin %90'ı için:\n{n_components_90} Bileşen Yeterli", 
-             transform=plt.gca().transAxes, fontsize=10, bbox=dict(facecolor='white', alpha=0.8))
-    
-    plt.legend(loc='best')
-    plt.savefig(os.path.join(gorsel_dir, "Figure_6_PCA_Varyans.png"), dpi=300)
-    plt.close()
-
-    # Figure 7: 2D PCA Projeksiyonu
-    plt.figure(figsize=(10, 8))
+    # 2.4.2 2D Projeksiyon
+    ax2 = fig.add_subplot(gs[0, 1])
     X_pca = pca.transform(X_scaled)
-    sns.scatterplot(x=X_pca[:, 0], y=X_pca[:, 1], hue=y, palette='viridis', alpha=0.6)
-    plt.title("Figür 2-7: Verilerin 2D PCA Düzlemindeki Dağılımı", fontweight='bold')
-    plt.xlabel("PC1 (En Yüksek Varyans)")
-    plt.ylabel("PC2 (İkinci Yüksek Varyans)")
-    
-    # Not
-    plt.text(0.5, -0.1, "Bu grafik, verilerin 2 boyutta ne kadar iyi kümelendiğini gösterir.\nAyrık kümeler, modelin öğrenme kolaylığını işaret eder.", 
-             ha='center', transform=plt.gca().transAxes, fontsize=9, bbox=dict(facecolor='white', alpha=0.8))
-    
+    sns.scatterplot(x=X_pca[:, 0], y=X_pca[:, 1], hue=y, palette='viridis', alpha=0.6, ax=ax2)
+    ax2.set_title("Şekil 2.4.2: Verilerin 2D PCA Düzlemindeki İz düşümü", pad=20)
+    ax2.set_xlabel("PC1 (En Yüksek Varyans)")
+    ax2.set_ylabel("PC2 (İkinci Yüksek Varyans)")
+
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "Figure_7_PCA_2D_Projeksiyon.png"), dpi=300)
+    plt.savefig(os.path.join(gorsel_dir, "Adim_2_4_PCA_Analiz_Paneli.png"), dpi=300)
     plt.close()
 
     # 4. Kayıt

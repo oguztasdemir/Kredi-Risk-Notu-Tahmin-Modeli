@@ -42,38 +42,54 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def gorsel_olustur_adim7(df, prev_df, gorsel_dir):
-    print("\n> Akademik Görseller Hazırlanıyor (Adım 7)...")
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 7 - Konsolide Panel)...")
     if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
     
     # Akademik Stil
     plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    fig = plt.figure(figsize=(24, 16))
+    fig.patch.set_facecolor('#EDF2FB')
+    gs = fig.add_gridspec(2, 3)
     
-    # PANEL 1: FİNANSAL ONARIM ANALİZİ
-    fig1 = plt.figure(figsize=(18, 12))
-    gs1 = fig1.add_gridspec(2, 2)
-    
-    # 7.1 Onarım Özeti (Donut)
-    ax1 = fig1.add_subplot(gs1[0, 0])
+    # 1. Onarım Özeti (Donut)
+    ax1 = fig.add_subplot(gs[0, 0])
     fark = (df.astype(str) != prev_df.astype(str)).sum().sum()
     ax1.pie([df.size - fark, fark], labels=['Sağlıklı Veri', 'Onarılan / Normalize'], 
-            autopct='%1.1f%%', colors=['#3498db', '#9b59b6'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
-    ax1.set_title("Şekil 7.1: Finansal Veri Kümesi Restorasyon Oranı")
+            autopct='%1.1f%%', colors=['#0D1B2A', '#415A77'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
+    ax1.set_title("Şekil 7.1: Finansal Veri Restorasyon Oranı", fontweight='bold')
 
-    # 7.2 En Çok Düzeltilen 8 Sütun (Bar)
-    ax2 = fig1.add_subplot(gs1[0, 1])
-    cols = ["Banka Hesabı Sayısı", "Kredi Kartı Sayısı", "Faiz Oranı", "Geciken Ödeme Sayısı", "Toplam Borç", "Aylık Yatırım Tutarı", "Aylık Bakiye", "Kredi Sayısı"]
-    degisimler = [(df[col].astype(str) != prev_df[col].astype(str)).sum() for col in cols]
-    sns.barplot(x=degisimler, y=cols, palette="viridis_r", ax=ax2)
-    ax2.set_title("Şekil 7.2: Sütun Bazlı Finansal Müdahale Sayıları")
+    # 2. En Çok Düzeltilen Sütunlar (Bar)
+    ax2 = fig.add_subplot(gs[0, 1])
+    cols = ["Banka Hesabı", "Kart Sayısı", "Faiz Oranı", "Gecikme", "Toplam Borç", "Yatırım", "Bakiye"]
+    col_mapping = {"Banka Hesabı": "Banka Hesabı Sayısı", "Kart Sayısı": "Kredi Kartı Sayısı", "Faiz Oranı": "Faiz Oranı", 
+                   "Gecikme": "Geciken Ödeme Sayısı", "Toplam Borç": "Toplam Borç", "Yatırım": "Aylık Yatırım Tutarı", "Bakiye": "Aylık Bakiye"}
+    degisimler = [(df[col_mapping[c]].astype(str) != prev_df[col_mapping[c]].astype(str)).sum() for c in cols]
+    sns.barplot(x=degisimler, y=cols, palette="mako", ax=ax2, hue=cols, legend=False)
+    ax2.set_title("Şekil 7.2: Sütun Bazlı Müdahale Sayıları", fontweight='bold')
 
-    # 7.3 Bakiye Dağılımı (Violin)
-    ax3 = fig1.add_subplot(gs1[1, 0])
-    sns.violinplot(y=df['Aylık Bakiye'], color='#34495e', ax=ax3)
-    ax3.set_title("Şekil 7.3: Onarım Sonrası Aylık Bakiye Dağılımı")
+    # 3. Bakiye Dağılımı (Violin)
+    ax3 = fig.add_subplot(gs[0, 2])
+    sns.violinplot(y=df['Aylık Bakiye'], color='#778DA9', ax=ax3)
+    ax3.set_title("Şekil 7.3: Onarım Sonrası Bakiye Dağılımı", fontweight='bold')
 
-    # 7.4 İlerleme Özeti (Table)
-    ax4 = fig1.add_subplot(gs1[1, 1])
-    ax4.axis('off')
+    # 4. Korelasyon Matrisi (Heatmap)
+    ax4 = fig.add_subplot(gs[1, 0])
+    numeric_df = df.select_dtypes(include=[np.number])
+    if not numeric_df.empty:
+        sns.heatmap(numeric_df.corr(), annot=False, cmap="YlGnBu", center=0, ax=ax4, cbar=False)
+    ax4.set_title("Şekil 7.4: Finansal Öznitelik Korelasyonu", fontweight='bold')
+
+    # 5. Standartlaştırılmış Boxplot
+    ax5 = fig.add_subplot(gs[1, 1])
+    subset = numeric_df.iloc[:, :6]
+    normalized_subset = (subset - subset.mean()) / subset.std()
+    sns.boxplot(data=normalized_subset, palette="Blues", ax=ax5)
+    ax5.set_xticklabels(ax5.get_xticklabels(), rotation=30)
+    ax5.set_title("Şekil 7.5: Ölçeklendirilmiş Dağılımlar", fontweight='bold')
+
+    # 6. İlerleme Özeti (Table)
+    ax6 = fig.add_subplot(gs[1, 2])
+    ax6.axis('off')
     stats_data = [
         ["Finansal Metrik", "Başarı Oranı"],
         ["Sayısal Tutarlılık", "%100"],
@@ -81,39 +97,20 @@ def gorsel_olustur_adim7(df, prev_df, gorsel_dir):
         ["Maaş-Harcama Dengesi", "Normalize Edildi"],
         ["Audit Durumu", "✓ Onaylandı"]
     ]
-    tab = ax4.table(cellText=stats_data, loc='center', cellLoc='center')
+    tab = ax6.table(cellText=stats_data, loc='center', cellLoc='center')
     tab.auto_set_font_size(False); tab.set_fontsize(12); tab.scale(1, 3)
     for (row, col), cell in tab.get_celld().items():
-        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
-        else: cell.set_facecolor('#f8f9fa')
-    ax4.set_title("Tablo 7.1: Finansal Veri Kümesi Denetim Özeti")
+        if row == 0: cell.set_facecolor('#0D1B2A'); cell.set_text_props(color='white')
+        else: cell.set_facecolor('#F8F9FA')
+    ax6.set_title("Tablo 7.1: Finansal Denetim Özeti", fontweight='bold')
 
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "Adim_7_Panel_1_Finansal_Onarim.png"))
+    plt.suptitle("FAZ 1 - ADIM 7: FİNANSAL VERİ CERRAHİ ONARIM PANELİ", fontsize=22, fontweight='bold', y=0.98, color='#0D1B2A')
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    
+    output_path = os.path.join(gorsel_dir, "Adim_1_7_Finansal_Restorasyon_Paneli.png")
+    plt.savefig(output_path, dpi=300)
     plt.close()
-
-    # PANEL 2: GLOBAL FİNANSAL ANALİZ
-    fig2 = plt.figure(figsize=(18, 10))
-    gs2 = fig2.add_gridspec(1, 2)
-
-    # 7.5 Korelasyon Matrisi (Heatmap)
-    ax5 = fig2.add_subplot(gs2[0, 0])
-    numeric_df = df.select_dtypes(include=[np.number])
-    if not numeric_df.empty:
-        sns.heatmap(numeric_df.corr(), annot=False, cmap="coolwarm", center=0, ax=ax5)
-    ax5.set_title("Şekil 7.4: Finansal Öznitelikler Arası Korelasyon Matrisi")
-
-    # 7.6 Standartlaştırılmış Boxplot
-    ax6 = fig2.add_subplot(gs2[0, 1])
-    subset = numeric_df.iloc[:, :8]
-    normalized_subset = (subset - subset.mean()) / subset.std()
-    sns.boxplot(data=normalized_subset, palette="Set2", ax=ax6)
-    ax6.set_xticklabels(ax6.get_xticklabels(), rotation=45)
-    ax6.set_title("Şekil 7.5: Finansal Değişkenlerin Ölçeklendirilmiş Dağılımı")
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "Adim_7_Panel_2_Global_Finansal.png"))
-    plt.close()
+    print(f"Konsolide panel kaydedildi: {output_path}")
     print(f"Görseller kaydedildi: {gorsel_dir}")
 
 def akilli_finansal_temizlik_v7():

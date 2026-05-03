@@ -1,5 +1,47 @@
-*.joblib
+# --- Proje Çıktıları ve Dökümantasyon ---
+6_Sunum_Guncel/
+7_Talimatlar/
+8_Final_Akademik_Rapor/
+9_Final_Notebook/
+scratch/
+
+# --- Python Kalıntıları ---
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+env/
+venv/
+
+# --- Devasa Model ve Veri Dosyaları ---
+*.joblib
+*.pkl
+*.model
+*.h5
+*.npy
+*.npz
+*.xlsx
+*.xls
+*.csv.gz
+
+# --- Geçici ve Yardımcı Araçlar (Artık Gereksiz) ---
 .ipynb_checkpoints/
-catboost_info/
+*.tmp
+*.temp
+debug_*.py
+notebook_*_olusturucu.py
+rapor_olusturucu.py
+docx_rapor_olusturucu.py
+temp_*.txt
+*.log
+
+# --- IDE ve Sistem Dosyaları ---
+.vscode/
+.idea/
+.project
+.pydevproject
+.settings/
+Thumbs.db
+.DS_Store
+desktop.ini

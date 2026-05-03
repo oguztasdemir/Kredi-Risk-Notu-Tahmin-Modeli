@@ -65,28 +65,27 @@ def rfe_analizi():
     df[selected_features + ["Kredi Skoru"]].to_excel(os.path.join(output_dir, "3_wrapper_sonrasi_veri.xlsx"), index=False)
     joblib.dump(selected_features, os.path.join(output_dir, "3_wrapper_secilmis_ozellikler.joblib"))
     
-    # 5. Görselleştirme
-    plt.style.use('seaborn-v0_8-whitegrid')
-    plt.figure(figsize=(12, 10))
-    bars = sns.barplot(data=ranking, x='Siralama', y='Ozellik', palette='mako')
+    # Akademik Panel Oluşturma
+    fig = plt.figure(figsize=(18, 12))
+    gs = fig.add_gridspec(1, 2, width_ratios=[1.5, 1])
     
-    # Sıralama numaralarını bar yanına (sağına) ekle
+    # 2.3.1 RFE Sıralaması
+    ax1 = fig.add_subplot(gs[0, 0])
+    sns.barplot(data=ranking, x='Siralama', y='Ozellik', palette='mako', ax=ax1)
     for i, v in enumerate(ranking['Siralama']):
-        plt.text(v + 0.1, i, f'#{v}', color='black', va='center', fontweight='bold', fontsize=10)
+        ax1.text(v + 0.1, i, f'#{v}', color='black', va='center', fontweight='bold', fontsize=9)
+    ax1.set_title("Şekil 2.3.1: RFE (Recursive Feature Elimination) Özellik Sıralaması", pad=20)
+    ax1.set_xlabel("Öncelik Sıralaması (1: En Önemli)")
 
-    plt.title("RFE (Recursive Feature Elimination) Özellik Sıralaması", fontweight='bold', fontsize=14)
-    plt.xlabel("Öncelik Sıralaması (1: En Önemli)")
-    plt.savefig(os.path.join(gorsel_dir, "Figure_5_RFE_Siralamasi.png"), dpi=300)
-    plt.close()
-
-    # Figure 6: RFE Seçim Özeti (Pie)
-    plt.figure(figsize=(8, 8))
+    # 2.3.2 Eleme Oranı
+    ax2 = fig.add_subplot(gs[0, 1])
     labels_pie = ['Seçilen (VIP)', 'Elenen (Gürültü)']
     sizes_pie = [len(selected_features), X.shape[1] - len(selected_features)]
-    plt.pie(sizes_pie, labels=labels_pie, autopct='%1.1f%%', colors=['#27ae60', '#95a5a6'], startangle=140, explode=(0.1, 0))
-    plt.title("RFE Süreci: Özellik Eleme Oranı", fontweight='bold')
+    ax2.pie(sizes_pie, labels=labels_pie, autopct='%1.1f%%', colors=['#27ae60', '#95a5a6'], startangle=140, explode=(0.1, 0))
+    ax2.set_title("Şekil 2.3.2: RFE Süreci: Özellik Eleme Oranı", pad=20)
+
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "Figure_6_RFE_Secim_Ozeti.png"), dpi=300)
+    plt.savefig(os.path.join(gorsel_dir, "Adim_2_3_RFE_Secim_Paneli.png"), dpi=300)
     plt.close()
 
     print(f"\n> BAŞARILI! RFE sonuçları kaydedildi.")

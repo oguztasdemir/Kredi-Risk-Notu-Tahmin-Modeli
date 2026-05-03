@@ -61,61 +61,45 @@ def manifold_gorsellestirme():
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
-        # 2. UMAP Analizi (Eğer yüklüyse)
-        if UMAP_AVAILABLE:
-            try:
-                print("> UMAP Boyut İndirgeme uygulanıyor...")
-                reducer = umap.UMAP(n_neighbors=15, min_dist=0.1, n_components=2, random_state=42)
-                X_umap = reducer.fit_transform(X_scaled)
-                
-                plt.figure(figsize=(12, 8))
-                sns.scatterplot(x=X_umap[:, 0], y=X_umap[:, 1], hue=y, palette='rocket', alpha=0.7, s=60, edgecolor='w')
-                plt.title("UMAP: Kredi Skoru Sınıflarının 2D Manifold Dağılım Analizi", fontsize=15, fontweight='bold')
-                plt.xlabel("UMAP Bileşeni 1")
-                plt.ylabel("UMAP Bileşeni 2")
-                plt.legend(title="Kredi Skoru (0:İyi, 1:Standart, 2:Kötü)", bbox_to_anchor=(1.05, 1), loc='upper left')
-                plt.grid(True, linestyle='--', alpha=0.3)
-                
-                # Not Ekle
-                plt.text(0.5, -0.15, "Analiz Amacı: Veri setindeki sınıfların (İyi/Kötü) manifold uzayında ne kadar ayrıştığını gözlemlemek.\nKümeler arasındaki boşluklar, modelin tahmin başarısının temelini oluşturur.", 
-                         ha='center', transform=plt.gca().transAxes, fontsize=10, bbox=dict(facecolor='white', alpha=0.5, boxstyle='round'))
+        # Akademik Panel Oluşturma (UMAP & t-SNE Karşılaştırmalı Analiz)
+        if UMAP_AVAILABLE or TSNE_AVAILABLE:
+            fig = plt.figure(figsize=(24, 16))
+            gs = fig.add_gridspec(2, 3)
+            
+            # 1. t-SNE Perplexity Karşılaştırması (Zorunlu: 15, 30, 50)
+            if TSNE_AVAILABLE:
+                perplexities = [15, 30, 50]
+                for i, p in enumerate(perplexities):
+                    print(f"> t-SNE uygulanıyor (Perplexity={p})...")
+                    tsne = TSNE(n_components=2, perplexity=p, random_state=42, init='pca', learning_rate='auto')
+                    X_tsne = tsne.fit_transform(X_scaled)
+                    ax = fig.add_subplot(gs[0, i])
+                    sns.scatterplot(x=X_tsne[:, 0], y=X_tsne[:, 1], hue=y, palette='viridis', alpha=0.6, s=40, ax=ax)
+                    ax.set_title(f"t-SNE (Perplexity={p})", fontsize=14, fontweight='bold')
+            
+            # 2. UMAP Parametre Karşılaştırması (n_neighbors ve min_dist)
+            if UMAP_AVAILABLE:
+                # Farklı kombinasyonlar
+                umap_params = [
+                    {'n_neighbors': 5, 'min_dist': 0.01, 'title': 'UMAP (Local: n=5, d=0.01)'},
+                    {'n_neighbors': 15, 'min_dist': 0.1, 'title': 'UMAP (Default: n=15, d=0.1)'},
+                    {'n_neighbors': 50, 'min_dist': 0.5, 'title': 'UMAP (Global: n=50, d=0.5)'}
+                ]
+                for i, p in enumerate(umap_params):
+                    print(f"> UMAP uygulanıyor ({p['title']})...")
+                    reducer = umap.UMAP(n_neighbors=p['n_neighbors'], min_dist=p['min_dist'], n_components=2, random_state=42)
+                    X_umap = reducer.fit_transform(X_scaled)
+                    ax = fig.add_subplot(gs[1, i])
+                    sns.scatterplot(x=X_umap[:, 0], y=X_umap[:, 1], hue=y, palette='rocket', alpha=0.6, s=40, ax=ax)
+                    ax.set_title(p['title'], fontsize=14, fontweight='bold')
 
-                plt.tight_layout()
-                filename = "UMAP_Kredi_Skoru_Kumelenme_Analizi.png"
-                plt.savefig(os.path.join(gorsel_dir, filename), dpi=300)
-                plt.close()
-                print(f"  - [BAŞARILI] {filename} oluşturuldu.")
-            except Exception as e:
-                print(f"> UYARI: UMAP çalışırken bir hata oluştu: {e}")
-        else:
-            print("> BİLGİ: umap-learn kütüphanesi bulunamadı, UMAP atlandı.")
-
-        # 3. t-SNE Analizi
-        if TSNE_AVAILABLE:
-            try:
-                print("> t-SNE Boyut İndirgeme uygulanıyor...")
-                tsne = TSNE(n_components=2, perplexity=30, random_state=42, init='pca', learning_rate='auto')
-                X_tsne = tsne.fit_transform(X_scaled)
-                
-                plt.figure(figsize=(12, 8))
-                sns.scatterplot(x=X_tsne[:, 0], y=X_tsne[:, 1], hue=y, palette='viridis', alpha=0.7, s=60, edgecolor='w')
-                plt.title("t-SNE: Kredi Skoru Sınıflarının Olasılıksal Komşuluk Dağılımı", fontsize=15, fontweight='bold')
-                plt.xlabel("t-SNE Boyutu 1")
-                plt.ylabel("t-SNE Boyutu 2")
-                plt.legend(title="Kredi Skoru", bbox_to_anchor=(1.05, 1), loc='upper left')
-                plt.grid(True, linestyle='--', alpha=0.3)
-
-                # Not Ekle
-                plt.text(0.5, -0.15, "Analiz Amacı: Yüksek boyutlu veriyi 2 boyuta indirgeyerek sınıf yoğunluklarını denetlemek.\nKomşuluk ilişkileri, benzer finansal profillerin bir araya toplandığını gösterir.", 
-                         ha='center', transform=plt.gca().transAxes, fontsize=10, bbox=dict(facecolor='white', alpha=0.5, boxstyle='round'))
-
-                plt.tight_layout()
-                filename = "tSNE_Kredi_Skoru_Yogunluk_Haritasi.png"
-                plt.savefig(os.path.join(gorsel_dir, filename), dpi=300)
-                plt.close()
-                print(f"  - [BAŞARILI] {filename} oluşturuldu.")
-            except Exception as e:
-                print(f"> UYARI: t-SNE çalışırken bir hata oluştu: {e}")
+            plt.suptitle("Şekil 2.5: Manifold Öğrenme Hiperparametre Karşılaştırması\n(t-SNE Perplexity ve UMAP n_neighbors/min_dist Analizi)", 
+                         fontsize=20, fontweight='bold', y=0.98)
+            plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+            
+            output_path = os.path.join(gorsel_dir, "Adim_2_5_Manifold_Analiz_Paneli.png")
+            plt.savefig(output_path, dpi=300)
+            plt.close()
 
         print(f"\n> Manifold öğrenme süreci tamamlandı. Görseller: {gorsel_dir}")
     except Exception as total_e:

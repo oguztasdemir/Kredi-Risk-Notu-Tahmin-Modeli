@@ -38,30 +38,32 @@ def korelasyon_analizi_premium():
     # Korelasyon Matrisi Hesaplama
     corr_matrix = df.corr()
     
-    # Görselleştirme: Isı Haritası
-    plt.figure(figsize=(20, 16))
+    # Akademik Panel Oluşturma
+    fig = plt.figure(figsize=(20, 14))
+    gs = fig.add_gridspec(1, 2, width_ratios=[1.2, 1])
+    
+    # 2.1.1 Isı Haritası
+    ax1 = fig.add_subplot(gs[0, 0])
     mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
     sns.heatmap(corr_matrix, mask=mask, annot=False, cmap="rocket_r", center=0, 
-                linewidths=.8, cbar_kws={"shrink": .7, "label": "Pearson Katsayısı"})
-    plt.title("Özellikler Arası Korelasyon Yapısı ve Çoklu Bağlantı Analizi", pad=30)
-    plt.tight_layout()
-    plt.savefig(os.path.join(G_DIR, "Global_Ozellik_Korelasyon_Isi_Haritasi.png"), dpi=300)
+                linewidths=.5, cbar_kws={"shrink": .5, "label": "Pearson Katsayısı"}, ax=ax1)
+    ax1.set_title("Şekil 2.1.1: Özellikler Arası Global Korelasyon Matrisi", pad=20)
 
-    # Hedef Değişken İlişkisi
+    # 2.1.2 Hedef Değişken İlişkisi
+    ax2 = fig.add_subplot(gs[0, 1])
     target_corr = corr_matrix["Kredi Skoru"].drop("Kredi Skoru").abs().sort_values(ascending=False)
-    plt.figure(figsize=(12, 10))
-    bars = sns.barplot(x=target_corr.values, y=target_corr.index, palette="mako")
+    sns.barplot(x=target_corr.values, y=target_corr.index, palette="mako", ax=ax2)
     
-    # Değerleri bar yanına (sağına) ekle
     for i, v in enumerate(target_corr.values):
-        plt.text(v + 0.005, i, f'{v:.3f}', color='black', va='center', fontweight='bold', fontsize=10)
+        ax2.text(v + 0.005, i, f'{v:.3f}', color='black', va='center', fontweight='bold', fontsize=9)
 
-    plt.title("Özelliklerin Kredi Skoru Üzerindeki Etki Gücü (Korelasyon)", pad=20, fontsize=14, fontweight='bold')
-    plt.xlabel("Mutlak Korelasyon Gücü (|r|)")
-    plt.grid(True, axis='x', linestyle='--', alpha=0.5)
+    ax2.set_title("Şekil 2.1.2: Özelliklerin Hedef Değişken (Kredi Skoru) Üzerindeki Etkisi", pad=20)
+    ax2.set_xlabel("Mutlak Korelasyon Gücü (|r|)")
+    ax2.grid(True, axis='x', linestyle='--', alpha=0.3)
+
     plt.tight_layout()
-    plt.savefig(os.path.join(G_DIR, "Kredi_Skoru_Etki_Analizi_Pearson.png"), dpi=300)
-    plt.close('all')
+    plt.savefig(os.path.join(G_DIR, "Adim_2_1_Korelasyon_Paneli.png"), dpi=300)
+    plt.close()
 
     # Yüksek Korelasyonlu Sütunların Elenmesi
     threshold = 0.90

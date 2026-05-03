@@ -54,24 +54,19 @@ def adli_tip_dogrulama():
     perm_importance = permutation_importance(rf, X, y, n_repeats=5, random_state=42, n_jobs=-1)
     perm_series = pd.Series(perm_importance.importances_mean, index=X.columns).sort_values(ascending=False)
 
-    # 4. Görselleştirme
-    # Figure 8: Mutual Information vs Permutation Importance
+    # 4. Görselleştirme (Akademik Panel)
     fig, axes = plt.subplots(1, 2, figsize=(20, 12))
     
-    # Mutual Info
-    mi_bars = sns.barplot(x=mi_series.values, y=mi_series.index, ax=axes[0], palette="flare")
-    for i, v in enumerate(mi_series.values):
-        axes[0].text(v + 0.002, i, f'{v:.3f}', color='black', va='center', fontweight='bold', fontsize=9)
-    axes[0].set_title("1. Mutual Information (Bilgi Kazanımı)", fontsize=13, fontweight='bold')
+    # 2.6.1 Mutual Info
+    sns.barplot(x=mi_series.values, y=mi_series.index, ax=axes[0], palette="flare")
+    axes[0].set_title("Şekil 2.6.1: Mutual Information (Bilgi Kazanımı)", pad=20)
     
-    # Permutation
-    perm_bars = sns.barplot(x=perm_series.values, y=perm_series.index, ax=axes[1], palette="crest")
-    for i, v in enumerate(perm_series.values):
-        axes[1].text(v + 0.002, i, f'{v:.3f}', color='black', va='center', fontweight='bold', fontsize=9)
-    axes[1].set_title("2. Permutation Importance (Doğrulama)", fontsize=13, fontweight='bold')
+    # 2.6.2 Permutation
+    sns.barplot(x=perm_series.values, y=perm_series.index, ax=axes[1], palette="crest")
+    axes[1].set_title("Şekil 2.6.2: Permutation Importance (Doğrulama)", pad=20)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "Figure_8_Ozellik_Dogrulama.png"), dpi=300)
+    plt.savefig(os.path.join(gorsel_dir, "Adim_2_6_Dogrulama_Paneli.png"), dpi=300)
     plt.close()
 
     print(f"\n> BAŞARILI! Özellik adli tıp analizi ve doğrulama tamamlandı.")

@@ -92,41 +92,53 @@ def gorsel_olustur_adim6():
     print(f"Görseller kaydedildi: {gorsel_dir_6}")
 
 def gorsel_olustur_adim5(df, original_df, gorsel_dir):
-    print("\n> Akademik Görseller Hazırlanıyor (Adım 5)...")
+    print("\n> Akademik Görseller Hazırlanıyor (Adım 5 - Konsolide Panel)...")
     if not os.path.exists(gorsel_dir): os.makedirs(gorsel_dir)
     
     # Akademik Stil
     plt.rcParams.update({'font.family': 'sans-serif', 'savefig.dpi': 300})
+    fig = plt.figure(figsize=(24, 16))
+    fig.patch.set_facecolor('#F0F2F5')
+    gs = fig.add_gridspec(2, 3)
     
-    # PANEL 1: KRİTİK ONARIM ANALİZİ
-    fig1 = plt.figure(figsize=(18, 12))
-    gs1 = fig1.add_gridspec(2, 2)
-    
-    # 1.1 Genel Onarım (Donut)
-    ax1 = fig1.add_subplot(gs1[0, 0])
+    # 1. Genel Onarım (Donut)
+    ax1 = fig.add_subplot(gs[0, 0])
     degisim = (df.astype(str) != original_df.astype(str)).sum().sum()
     ax1.pie([df.size - degisim, degisim], labels=['Orijinal Korunan', 'Onarılan / Restore'], 
-            autopct='%1.1f%%', colors=['#2980b9', '#c0392b'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
-    ax1.set_title("Şekil 5.1: Kimlik Bilgileri Toplam Onarım Oranı")
+            autopct='%1.1f%%', colors=['#1B263B', '#C0392B'], startangle=90, wedgeprops={'width':0.4, 'edgecolor': 'white'})
+    ax1.set_title("Şekil 5.1: Kimlik Bilgileri Toplam Onarım Oranı", fontweight='bold')
 
-    # 1.2 Onarım Dashboard (Bar)
-    ax2 = fig1.add_subplot(gs1[0, 1])
+    # 2. Onarım Dashboard (Bar)
+    ax2 = fig.add_subplot(gs[0, 1])
     kritik = ["İsim", "Yaş", "Kimlik No", "Meslek", "Yıllık Gelir", "Aylık Net Maaş", "Kredi Türü"]
     farklar = [(df[col].astype(str) != original_df[col].astype(str)).sum() for col in kritik]
-    sns.barplot(x=kritik, y=farklar, palette="viridis", ax=ax2, hue=kritik, legend=False)
-    ax2.set_title("Şekil 5.2: Sütun Bazlı Müdahale Sayıları")
+    sns.barplot(x=kritik, y=farklar, palette="Blues_d", ax=ax2, hue=kritik, legend=False)
+    ax2.set_title("Şekil 5.2: Sütun Bazlı Müdahale Sayıları", fontweight='bold')
     ax2.set_xticklabels(kritik, rotation=30)
-    for p in ax2.patches:
-        ax2.annotate(f'{int(p.get_height())}', (p.get_x() + p.get_width()/2., p.get_height()), ha='center', va='bottom', fontweight='bold')
 
-    # 1.3 Yaş Dağılımı (Histogram)
-    ax3 = fig1.add_subplot(gs1[1, 0])
-    sns.histplot(df['Yaş'], bins=20, color='#2ecc71', kde=True, ax=ax3)
-    ax3.set_title("Şekil 5.3: Onarım Sonrası Yaş Dağılımı")
+    # 3. Yaş Dağılımı (Histogram)
+    ax3 = fig.add_subplot(gs[0, 2])
+    sns.histplot(df['Yaş'], bins=20, color='#415A77', kde=True, ax=ax3)
+    ax3.set_title("Şekil 5.3: Onarım Sonrası Yaş Dağılımı", fontweight='bold')
 
-    # 1.4 İlerleme Özeti (Table)
-    ax4 = fig1.add_subplot(gs1[1, 1])
-    ax4.axis('off')
+    # 4. Sütun Bazlı Doluluk (Barh)
+    ax4 = fig.add_subplot(gs[1, 0])
+    fill_rates = (1 - df.isna().mean()) * 100
+    fill_rates = fill_rates.sort_values().tail(10) # En kritik 10
+    sns.barplot(x=fill_rates.values, y=fill_rates.index, palette="mako", ax=ax4)
+    ax4.set_title("Şekil 5.4: Özellik Bazlı Doluluk (%)", fontweight='bold')
+    ax4.set_xlim(0, 110)
+
+    # 5. Veri Tipi Dağılımı (Donut)
+    ax5 = fig.add_subplot(gs[1, 1])
+    types = df.dtypes.astype(str).value_counts()
+    ax5.pie(types, labels=types.index, autopct='%1.1f%%', colors=['#778DA9', '#E0E1DD', '#1B263B'], 
+            startangle=140, wedgeprops={'width': 0.4, 'edgecolor': 'white'})
+    ax5.set_title("Şekil 5.5: Veri Kümesi Tipolojisi", fontweight='bold')
+
+    # 6. İlerleme Özeti (Table)
+    ax6 = fig.add_subplot(gs[1, 2])
+    ax6.axis('off')
     prog_data = [
         ["Aşama", "Durum"],
         ["Format Denetimi", "✓ Tamamlandı"],
@@ -135,40 +147,21 @@ def gorsel_olustur_adim5(df, original_df, gorsel_dir):
         ["Aykırı Değer Filtresi", "✓ Tamamlandı"],
         ["Restorasyon Skoru", "%99.4"]
     ]
-    tab = ax4.table(cellText=prog_data, loc='center', cellLoc='center')
+    tab = ax6.table(cellText=prog_data, loc='center', cellLoc='center')
     tab.auto_set_font_size(False); tab.set_fontsize(12); tab.scale(1, 3)
     for (row, col), cell in tab.get_celld().items():
-        if row == 0: cell.set_facecolor('#2c3e50'); cell.set_text_props(color='white')
-        else: cell.set_facecolor('#f8f9fa')
-    ax4.set_title("Tablo 5.1: Veri Restorasyon Süreç Takibi")
+        if row == 0: cell.set_facecolor('#1B263B'); cell.set_text_props(color='white')
+        else: cell.set_facecolor('#F8F9FA')
+    ax6.set_title("Tablo 5.1: Veri Restorasyon Süreç Takibi", fontweight='bold')
 
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "Adim_5_Panel_1_Onarim.png"))
+    plt.suptitle("FAZ 1 - ADIM 5: KRİTİK SÜTUN CERRAHİ ONARIM PANELİ", fontsize=22, fontweight='bold', y=0.98, color='#1B263B')
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    
+    # Yeni isimle kaydet
+    output_path = os.path.join(gorsel_dir, "Adim_1_5_Kritik_Sutun_Paneli.png")
+    plt.savefig(output_path, dpi=300)
     plt.close()
-
-    # PANEL 2: GLOBAL VERİ SAĞLIĞI
-    fig2 = plt.figure(figsize=(18, 10))
-    gs2 = fig2.add_gridspec(1, 2)
-
-    # 2.1 Sütun Bazlı Doluluk (Barh)
-    ax5 = fig2.add_subplot(gs2[0, 0])
-    fill_rates = (1 - df.isna().mean()) * 100
-    fill_rates = fill_rates.sort_values()
-    sns.barplot(x=fill_rates.values, y=fill_rates.index, palette="mako", ax=ax5)
-    ax5.set_title("Şekil 5.4: Özellik Bazlı Veri Doluluk Oranları (%)")
-    ax5.set_xlim(0, 110)
-
-    # 2.2 Veri Tipi Dağılımı (Donut)
-    ax6 = fig2.add_subplot(gs2[0, 1])
-    types = df.dtypes.astype(str).value_counts()
-    ax6.pie(types, labels=types.index, autopct='%1.1f%%', colors=['#3498db', '#f1c40f', '#9b59b6'], 
-            startangle=140, wedgeprops={'width': 0.4, 'edgecolor': 'white'})
-    ax6.set_title("Şekil 5.5: Veri Kümesi Tipolojisi")
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(gorsel_dir, "Adim_5_Panel_2_Global_Analiz.png"))
-    plt.close()
-    print(f"Görseller kaydedildi: {gorsel_dir}")
+    print(f"Konsolide panel kaydedildi: {output_path}")
 
 def akilli_temizlik_v6():
     print("\n" + "="*50)
