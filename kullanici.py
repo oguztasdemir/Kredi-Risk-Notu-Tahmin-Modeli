@@ -1,3 +1,3 @@
-# Proje ana dizin yolu
-# Başka bir bilgisayarda çalıştırırken sadece buradaki yolu güncellemeniz yeterlidir.
-klasor = r"c:\Users\User\Desktop\Kredi Hesaplaması"
+# Proje ana klasör yolu (her bilgisayarda otomatik algılanır)
+import os
+klasor = os.path.dirname(os.path.abspath(__file__))

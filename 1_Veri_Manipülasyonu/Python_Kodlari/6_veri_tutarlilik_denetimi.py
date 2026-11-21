@@ -14,7 +14,7 @@ sys.path.append(ana_dizin)
 try:
     from kullanici import klasor as base_path
 except ImportError:
-    base_path = r"c:\Users\User\Desktop\Kredi Hesaplaması"
+    base_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 
 # Dosya yolları
 input_file = os.path.join(base_path, "1_Veri_Manipülasyonu", "Ciktilar", "5_Kritik_Sutun_Temizligi", "kritik_sutunlar_temizlenmis_renkli.xlsx")
