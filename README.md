@@ -1,5 +1,8 @@
 # Kredi Notu Sınıflandırma ve Risk Analizi Modellemesi
 
+[![CI Tests](https://github.com/oguztasdemir/Kredi-Notu-Siniflandirmasi-Tahmin-Modeli/actions/workflows/ci.yml/badge.svg)](https://github.com/oguztasdemir/Kredi-Notu-Siniflandirmasi-Tahmin-Modeli/actions/workflows/ci.yml)
+
+
 Bu proje, bankacılık sektöründeki kredi riskini doğru bir şekilde sınıflandırmak amacıyla 100.000 müşterinin finansal verileri kullanılarak geliştirilmiş, uçtan uca ve akademik standartlarda bir makine öğrenmesi boru hattıdır (pipeline). Proje, ham verinin restorasyonundan başlayıp hibrit bir Stacking Ensemble mimarisiyle %89.38 başarı oranına ulaşan profesyonel bir çözüm sunar.
 
 ## 🚀 Proje Mimari ve İşleyiş Mantığı
@@ -58,3 +61,29 @@ Projenin GitHub üzerinde verimli çalışabilmesi ve 100MB dosya sınırına ta
 
 ---
 *Bu çalışma, İstanbul Medeniyet Üniversitesi - Makine Öğrenmesine Giriş dersinin bir grup projesidir."
+
+
+---
+
+## Ekran Görüntüleri
+
+### Model Kiyaslama Ve Benchmarking
+![Model Kiyaslama Ve Benchmarking](docs/screenshots/01_model_kiyaslama_ve_benchmarking.png)
+
+### Optuna Hiperparametre Optimizasyonu
+![Optuna Hiperparametre Optimizasyonu](docs/screenshots/02_optuna_hiperparametre_optimizasyonu.png)
+
+### Hibrit Stacking Mimarisi
+![Hibrit Stacking Mimarisi](docs/screenshots/03_hibrit_stacking_mimarisi.png)
+
+
+---
+
+## Yerel Testler
+
+Projenin temel çalışma ve sözdizimi doğrulama testlerini çalıştırmak için:
+
+```bash
+pip install pytest
+pytest tests -v
+```
